@@ -1,0 +1,40 @@
+name: zksync
+description: Client for interacting with zksync network.
+version: 0.0.1
+
+# environment:
+#   sdk: ">=2.12.0-0 <3.0.0"
+
+dependencies:
+  pointycastle: ^1.0.1
+  convert: ^2.1.1
+  meta: ^1.1.0
+  http: ^0.12.0
+  uuid: ^2.0.0
+  isolate: ^2.0.0
+  typed_data: ^1.1.6
+  stream_channel: ^2.0.0
+  json_rpc_2: ^2.1.0
+  collection: ^1.14.11
+  web3dart: ^1.2.3
+  bit_array: ^2.0.0
+
+dependency_overrides:
+  pointycastle: ^2.0.1
+
+dev_dependencies:
+  web_socket_channel: ^1.0.0
+  path: ^1.6.2
+  test: ^1.9.0
+  mockito: ^4.0.0
+  coverage: ^0.13.3
+  ffigen: ^1.2.0
+
+ffigen:
+  output: lib/src/native/zks_crypto_bindings.dart
+  headers:
+    entry-points:
+    - zksync-crypto-c/zks-crypto-c/zks_crypto.h
+  name: ZksCryptoBindings
+  description: Dart bindings to call zks crypto functions
+  array-workaround: true
