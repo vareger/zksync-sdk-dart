@@ -7,8 +7,8 @@ const FEE_EXPONENT_BIT_WIDTH = 5;
 const FEE_MANTISSA_BIT_WIDTH = 11;
 
 extension ToBytesBigEndian on int {
-  Uint8List int32BigEndianBytes() =>
-      Uint8List(4)..buffer.asByteData().setInt32(0, this, Endian.big);
+  Uint8List uint64BigEndianBytes() =>
+      Uint8List(8)..buffer.asByteData().setUint64(0, this, Endian.big);
 
   Uint8List uint32BigEndianBytes() =>
       Uint8List(4)..buffer.asByteData().setUint32(0, this, Endian.big);

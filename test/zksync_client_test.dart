@@ -296,17 +296,17 @@ void main() {
     when(client.post(any, headers: anyNamed('headers'), body: anyNamed('body')))
         .thenAnswer((i) {
       return Future.value(Response(
-        '{"jsonrpc":"2.0","result":{"mainContract":"0x82F67958A5474e40E1485742d648C0b0686b6e5D","govContract":"0xC8568F373484Cd51FDc1FE3675E46D8C0dc7D246"},"id":0}',
+        '{"jsonrpc":"2.0","result":{"mainContract":"0x82f67958a5474e40e1485742d648c0b0686b6e5d","govContract":"0xc8568f373484cd51fdc1fe3675e46d8c0dc7d246"},"id":0}',
         200,
       ));
     });
 
     final contracts = await zksync.getContractAddress();
 
-    expect(contracts.mainContract.hexEip55,
-        equals('0x82F67958A5474e40E1485742d648C0b0686b6e5D'));
-    expect(contracts.govContract.hexEip55,
-        equals('0xC8568F373484Cd51FDc1FE3675E46D8C0dc7D246'));
+    expect(contracts.mainContract.hex,
+        equals('0x82f67958a5474e40e1485742d648c0b0686b6e5d'));
+    expect(contracts.govContract.hex,
+        equals('0xc8568f373484cd51fdc1fe3675e46d8c0dc7d246'));
   });
 
   test('get transaction execution status', () async {

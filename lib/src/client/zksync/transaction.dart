@@ -15,6 +15,21 @@ class TransactionFee {
         totalFee = json["totalFee"];
 }
 
+class TimeRange {
+  final DateTime _from, _until;
+
+  const TimeRange(this._from, this._until);
+  TimeRange.raw(int from, int until)
+      : this._from = DateTime.fromMillisecondsSinceEpoch(from * 1000),
+        this._until = DateTime.fromMillisecondsSinceEpoch(until * 1000);
+
+  DateTime get validFrom => _from;
+  DateTime get validUntil => _until;
+
+  int get validFromSeconds => _from.millisecondsSinceEpoch ~/ 1000;
+  int get validUntilSeconds => _until.millisecondsSinceEpoch ~/ 1000;
+}
+
 enum TransactionType {
   WITHDRAW,
   TRANSFER,
@@ -22,6 +37,59 @@ enum TransactionType {
   CHANGE_PUB_KEY,
   CHANGE_PUB_KEY_ONCHAIN_AUTH,
   FORCED_EXIT
+}
+
+enum ChangePubKeyType {
+  ONCHAIN,
+  ECDSA,
+  CREATE2,
+}
+
+abstract class ChangePubKeyVariant {
+  ChangePubKeyType get type;
+  Uint8List get bytes;
+
+  const ChangePubKeyVariant();
+}
+
+class ChangePubKeyOnchainVariant extends ChangePubKeyVariant {
+  static const ChangePubKeyOnchainVariant _internal =
+      ChangePubKeyOnchainVariant._create();
+
+  factory ChangePubKeyOnchainVariant() {
+    return _internal;
+  }
+
+  const ChangePubKeyOnchainVariant._create();
+
+  @override
+  ChangePubKeyType get type => ChangePubKeyType.ONCHAIN;
+
+  @override
+  Uint8List get bytes => bigIntegerToBytes(BigInt.zero, 32);
+}
+
+class ChangePubKeyECDSAVariant extends ChangePubKeyVariant {
+  String ethSignature;
+  String batchHash;
+
+  @override
+  ChangePubKeyType get type => ChangePubKeyType.ECDSA;
+
+  @override
+  Uint8List get bytes => hexToBytes(batchHash);
+}
+
+class ChangePubKeyCREATE2Variant extends ChangePubKeyVariant {
+  EthereumAddress creatorAddress;
+  String saltArg;
+  String codeHash;
+
+  @override
+  ChangePubKeyType get type => ChangePubKeyType.CREATE2;
+
+  @override
+  Uint8List get bytes => bigIntegerToBytes(BigInt.zero, 32);
 }
 
 extension ToParam on TransactionType {
@@ -55,6 +123,7 @@ abstract class Transaction {
   Signature signature;
   BigInt fee;
   int nonce;
+  TimeRange timeRange;
 }
 
 abstract class FundingTransaction extends Transaction {
@@ -70,7 +139,7 @@ class Transfer extends FundingTransaction {
   get type => "Transfer";
 
   Transfer(int accountId, EthereumAddress from, EthereumAddress to, int token,
-      BigInt amount, BigInt fee, int nonce,
+      BigInt amount, BigInt fee, int nonce, TimeRange timeRange,
       [Signature signature]) {
     this.accountId = accountId;
     this.from = from;
@@ -79,6 +148,7 @@ class Transfer extends FundingTransaction {
     this.amount = amount;
     this.fee = fee;
     this.nonce = nonce;
+    this.timeRange = timeRange;
 
     if (signature != null) {
       this.signature = signature;
@@ -91,7 +161,7 @@ class Withdraw extends FundingTransaction {
   get type => "Withdraw";
 
   Withdraw(int accountId, EthereumAddress from, EthereumAddress to, int token,
-      BigInt amount, BigInt fee, int nonce,
+      BigInt amount, BigInt fee, int nonce, TimeRange timeRange,
       [Signature signature]) {
     this.accountId = accountId;
     this.from = from;
@@ -100,6 +170,7 @@ class Withdraw extends FundingTransaction {
     this.amount = amount;
     this.fee = fee;
     this.nonce = nonce;
+    this.timeRange = timeRange;
 
     if (signature != null) {
       this.signature = signature;
@@ -116,13 +187,14 @@ class ForcedExit extends Transaction {
   int token;
 
   ForcedExit(int initiatorAccountId, EthereumAddress target, int token,
-      BigInt fee, int nonce,
+      BigInt fee, int nonce, TimeRange timeRange,
       [Signature signature]) {
     this.initiatorAccountId = initiatorAccountId;
     this.target = target;
     this.token = token;
     this.fee = fee;
     this.nonce = nonce;
+    this.timeRange = timeRange;
 
     if (signature != null) {
       this.signature = signature;
@@ -130,7 +202,7 @@ class ForcedExit extends Transaction {
   }
 }
 
-class ChangePubKey extends Transaction {
+class ChangePubKey<T extends ChangePubKeyVariant> extends Transaction {
   @override
   get type => "ChangePubKey";
 
@@ -139,10 +211,11 @@ class ChangePubKey extends Transaction {
   ZksPubkeyHash newPkHash;
   int feeToken;
   String ethSignature;
+  T ethAuthData;
 
   ChangePubKey(int accountId, EthereumAddress account, ZksPubkeyHash newPkHash,
-      int feeToken, BigInt fee, int nonce,
-      [String ethSignature, Signature signature]) {
+      int feeToken, BigInt fee, int nonce, TimeRange timeRange, T ethAuthData,
+      [Signature signature]) {
     this.accountId = accountId;
     this.account = account;
     this.newPkHash = newPkHash;
@@ -150,10 +223,8 @@ class ChangePubKey extends Transaction {
     this.ethSignature = ethSignature;
     this.fee = fee;
     this.nonce = nonce;
-
-    if (ethSignature != null) {
-      this.ethSignature = ethSignature;
-    }
+    this.timeRange = timeRange;
+    this.ethAuthData = ethAuthData;
 
     if (signature != null) {
       this.signature = signature;
@@ -214,6 +285,8 @@ extension ToBytes<T extends Transaction> on T {
           packTokenAmount(transfer.amount),
           packFeeAmount(transfer.fee),
           transfer.nonce.uint32BigEndianBytes(),
+          transfer.timeRange.validFromSeconds.uint64BigEndianBytes(),
+          transfer.timeRange.validUntilSeconds.uint64BigEndianBytes(),
         ];
         return Uint8List.fromList(bytes.expand((x) => x).toList());
       case "Withdraw":
@@ -227,6 +300,8 @@ extension ToBytes<T extends Transaction> on T {
           bigIntegerToBytes(withdraw.amount, 16),
           packFeeAmount(withdraw.fee),
           withdraw.nonce.uint32BigEndianBytes(),
+          withdraw.timeRange.validFromSeconds.uint64BigEndianBytes(),
+          withdraw.timeRange.validUntilSeconds.uint64BigEndianBytes(),
         ];
         return Uint8List.fromList(bytes.expand((x) => x).toList());
       case "ChangePubKey":
@@ -239,6 +314,8 @@ extension ToBytes<T extends Transaction> on T {
           changePubKey.feeToken.uint16BigEndianBytes(),
           packFeeAmount(changePubKey.fee),
           changePubKey.nonce.uint32BigEndianBytes(),
+          changePubKey.timeRange.validFromSeconds.uint64BigEndianBytes(),
+          changePubKey.timeRange.validUntilSeconds.uint64BigEndianBytes(),
         ];
         return Uint8List.fromList(bytes.expand((x) => x).toList());
       case "ForcedExit":
@@ -250,6 +327,8 @@ extension ToBytes<T extends Transaction> on T {
           forcedExit.token.uint16BigEndianBytes(),
           packFeeAmount(forcedExit.fee),
           forcedExit.nonce.uint32BigEndianBytes(),
+          forcedExit.timeRange.validFromSeconds.uint64BigEndianBytes(),
+          forcedExit.timeRange.validUntilSeconds.uint64BigEndianBytes(),
         ];
         return Uint8List.fromList(bytes.expand((x) => x).toList());
     }
@@ -258,21 +337,54 @@ extension ToBytes<T extends Transaction> on T {
 }
 
 extension ToEthereumMessage<T extends FundingTransaction> on T {
-  String toEthereumSignMessage(String tokenSymbol, int decimals) {
-    return "${this.type} ${formatUnit(this.amount.toString(), decimals)} $tokenSymbol\n" +
-        "To: ${this.to.hex}\n" +
-        "Nonce: ${this.nonce}\n" +
-        "Fee: ${formatUnit(this.fee.toString(), decimals)} $tokenSymbol\n" +
-        "Account Id: ${this.accountId}";
+  String toEthereumSignMessage(String tokenSymbol, int decimals,
+      {bool nonce = false}) {
+    var result =
+        "${this.type} ${formatUnit(this.amount.toString(), decimals)} $tokenSymbol to: ${this.to.hex}";
+    if (this.fee.compareTo(BigInt.zero) > 0) {
+      result +=
+          "\nFee: ${formatUnit(this.fee.toString(), decimals)} $tokenSymbol";
+    }
+    if (nonce) {
+      result += "\nNonce: ${this.nonce}";
+    }
+    return result;
+  }
+}
+
+extension ToEthereumMessageForcedExit on ForcedExit {
+  String toEthereumSignMessage(String tokenSymbol, int decimals,
+      {bool nonce = false}) {
+    var result = "${this.type} $tokenSymbol to: ${this.target.hex}";
+    if (this.fee.compareTo(BigInt.zero) > 0) {
+      result +=
+          "\nFee: ${formatUnit(this.fee.toString(), decimals)} $tokenSymbol";
+    }
+    if (nonce) {
+      result += "\nNonce: ${this.nonce}";
+    }
+    return result;
   }
 }
 
 extension ToEthereumMessageChangePubKey on ChangePubKey {
-  String toEthereumSignMessage() {
-    return "Register zkSync pubkey:\n\n" +
-        "${this.newPkHash.hexHash}\n" +
-        "nonce: 0x${hex.encode(this.nonce.uint32BigEndianBytes())}\n" +
-        "account id: 0x${hex.encode(this.accountId.uint32BigEndianBytes())}\n\n" +
-        "Only sign this message for a trusted client!";
+  Uint8List toEthereumSignData() {
+    final data = [
+      this.newPkHash.addressBytes,
+      this.nonce.uint32BigEndianBytes(),
+      this.accountId.uint32BigEndianBytes(),
+      this.ethAuthData.bytes
+    ];
+
+    return Uint8List.fromList(data.expand((x) => x).toList());
+  }
+
+  String toEthereumSignMessagePart(String tokenSymbol, int decimals) {
+    var result = "Set signing key: ${this.newPkHash.hexHash}";
+    if (this.fee.compareTo(BigInt.zero) > 0) {
+      result +=
+          "\nFee: ${formatUnit(this.fee.toString(), decimals)} $tokenSymbol";
+    }
+    return result;
   }
 }

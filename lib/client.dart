@@ -6,6 +6,7 @@ import 'package:http/http.dart';
 import 'package:web3dart/credentials.dart';
 import 'package:pointycastle/src/utils.dart';
 import 'package:bit_array/bit_array.dart';
+import 'package:web3dart/crypto.dart';
 import 'package:zksync/credentials.dart';
 
 import 'json_rpc.dart';
