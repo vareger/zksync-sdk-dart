@@ -112,4 +112,14 @@ class ZksSigher {
     }
     return result;
   }
+
+  Future<Uint8List> signMessage(Uint8List payload) async {
+    final signature = _lib.sign(_privateKey, payload);
+    final refData = signature.ref.data;
+    var result = Uint8List(64);
+    for (int i = 0; i < result.length; i++) {
+      result[i] = refData[i];
+    }
+    return result;
+  }
 }

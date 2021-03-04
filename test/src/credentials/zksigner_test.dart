@@ -54,6 +54,22 @@ void main() async {
       12,
       TimeRange.raw(0, 4294967295));
 
+  test('generate public key (zk)', () async {
+    final zkSigner = ZksSigher.seed(hex.decode(
+        '000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f'));
+    final expectedPublicKey =
+        '17f3708f5e2b2c39c640def0cf0010fd9dd9219650e389114ea9da47f5874184';
+    final expectedSignature =
+        "5462c3083d92b832d540c9068eed0a0450520f6dd2e4ab169de1a46585b394a4292896a2ebca3c0378378963a6bc1710b64c573598e73de3a33d6cec2f5d7403";
+
+    final resultSignature = hex.encode(await zkSigner.signMessage(hex.decode(
+        '000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f')));
+    final resultPublicKey = zkSigner.publicKey;
+
+    expect(resultPublicKey, equals(expectedPublicKey));
+    expect(resultSignature, equals(expectedSignature));
+  });
+
   test('sign single transfer (zk)', () async {
     final expected =
         '849281ea1b3a97b3fe30fbd25184db3e7860db96e3be9d53cf643bd5cf7805a30dbf685c1e63fd75968a61bd83d3a1fb3a0b1c68c71fe87d96f1c1cb7de45b05';
