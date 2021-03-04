@@ -406,7 +406,7 @@ void main() {
         42,
         TimeRange.raw(1, 123456789),
         ChangePubKeyOnchainVariant());
-    final result = transaction.toEthereumSignMessagePart("ETH", 18);
+    final result = transaction.toEthereumSignMessage("ETH", 18, nonce: false);
     expect(
         result,
         equals(

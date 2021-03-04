@@ -2,8 +2,8 @@ name: zksync
 description: Client for interacting with zksync network.
 version: 0.0.1
 
-# environment:
-#   sdk: ">=2.12.0-0 <3.0.0"
+environment:
+  sdk: '>=2.10.0 <3.0.0'
 
 dependencies:
   pointycastle: ^1.0.1
@@ -16,11 +16,9 @@ dependencies:
   stream_channel: ^2.0.0
   json_rpc_2: ^2.1.0
   collection: ^1.14.11
-  web3dart: ^1.2.3
+  web3dart: 2.0.0-dev.9
   bit_array: ^2.0.0
-
-dependency_overrides:
-  pointycastle: ^2.0.1
+  json_annotation: ^3.0.0
 
 dev_dependencies:
   web_socket_channel: ^1.0.0
@@ -29,6 +27,8 @@ dev_dependencies:
   mockito: ^4.0.0
   coverage: ^0.13.3
   ffigen: ^1.2.0
+  build_runner: ^1.0.0
+  json_serializable: ^3.0.0
 
 ffigen:
   output: lib/src/native/zks_crypto_bindings.dart

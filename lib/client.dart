@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:convert/convert.dart';
 import 'package:http/http.dart';
 import 'package:web3dart/credentials.dart';
 import 'package:pointycastle/src/utils.dart';

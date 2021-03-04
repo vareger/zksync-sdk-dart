@@ -12,22 +12,52 @@ const String MESSAGE =
     "Access zkSync account.\n\nOnly sign this message for a trusted client!";
 
 class EthSigner {
-  web3.Credentials _credentials;
+  web3.EthPrivateKey _credentials;
+  int chainId;
 
-  EthSigner.raw(Uint8List rawKey) {
+  EthSigner.raw(Uint8List rawKey, {int chainId}) {
     _credentials = web3.EthPrivateKey(rawKey);
+    chainId = chainId;
   }
 
-  EthSigner.hex(String hexKey) {
+  EthSigner.hex(String hexKey, {int chainId}) {
     _credentials = web3.EthPrivateKey.fromHex(hexKey);
+    chainId = chainId;
   }
 
-  Future<Uint8List> signPersonalMessage(Uint8List payload, {int chainId}) {
+  EthSigner(this._credentials, [this.chainId]);
+
+  Future<web3.EthereumAddress> address() async {
+    return _credentials.extractAddress();
+  }
+
+  Future<Uint8List> signPersonalMessage(Uint8List payload) {
     return _credentials.signPersonalMessage(payload, chainId: chainId);
   }
 
-  Future<Uint8List> signFunding<T extends FundingTransaction>(T transaction) {}
-  Future<Uint8List> signChangePubKey(ChangePubKey transaction) {}
+  Future<Uint8List> sign<T extends Transaction>(
+      T transaction, Token token) async {
+    final message = transaction
+        .toEthereumSignMessage(token.symbol, token.decimals, nonce: true);
+    return _credentials.signPersonalMessage(Utf8Encoder().convert(message),
+        chainId: chainId);
+  }
+
+  Future<Uint8List> signBatch(
+      List<Transaction> transactions, Token token) async {
+    final first = transactions.first;
+    final prepared = transactions
+        .map((t) =>
+            t.toEthereumSignMessage(token.symbol, token.decimals, nonce: false))
+        .join("\n");
+    final message = first.appendNonce(prepared);
+    final signature = await _credentials
+        .signPersonalMessage(Utf8Encoder().convert(message), chainId: chainId);
+
+    return signature;
+  }
+
+  Future<Uint8List> signAuth(ChangePubKey transaction) {}
 }
 
 class ZksSigher {
@@ -63,8 +93,7 @@ class ZksSigher {
       message = "$message\nChain ID: ${chainId.getChainId()}.";
     }
     final data = Utf8Encoder().convert(message);
-    Uint8List signature =
-        await ethereum.signPersonalMessage(data, chainId: chainId.getChainId());
+    Uint8List signature = await ethereum.signPersonalMessage(data);
 
     return ZksSigher.seed(signature);
   }

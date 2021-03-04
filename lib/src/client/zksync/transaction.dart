@@ -336,38 +336,50 @@ extension ToBytes<T extends Transaction> on T {
   }
 }
 
-extension ToEthereumMessage<T extends FundingTransaction> on T {
+extension ToEthereumMessage<T extends Transaction> on T {
   String toEthereumSignMessage(String tokenSymbol, int decimals,
       {bool nonce = false}) {
-    var result =
-        "${this.type} ${formatUnit(this.amount.toString(), decimals)} $tokenSymbol to: ${this.to.hex}";
+    var result = '';
+    switch (this.type) {
+      case 'Transfer':
+      case 'Withdraw':
+        {
+          final tx = this as FundingTransaction;
+          result =
+              "${tx.type} ${formatUnit(tx.amount.toString(), decimals)} $tokenSymbol to: ${tx.to.hex}";
+        }
+        break;
+      case 'ForcedExit':
+        {
+          final tx = this as ForcedExit;
+          result = "${tx.type} $tokenSymbol to: ${tx.target.hex}";
+        }
+        break;
+      case 'ChangePubKey':
+        {
+          final tx = this as ChangePubKey;
+          result = "Set signing key: ${tx.newPkHash.hexHash}";
+        }
+        break;
+      default:
+        throw 'Invalid transaction type';
+    }
     if (this.fee.compareTo(BigInt.zero) > 0) {
       result +=
           "\nFee: ${formatUnit(this.fee.toString(), decimals)} $tokenSymbol";
     }
     if (nonce) {
-      result += "\nNonce: ${this.nonce}";
+      result = this.appendNonce(result);
     }
     return result;
   }
-}
 
-extension ToEthereumMessageForcedExit on ForcedExit {
-  String toEthereumSignMessage(String tokenSymbol, int decimals,
-      {bool nonce = false}) {
-    var result = "${this.type} $tokenSymbol to: ${this.target.hex}";
-    if (this.fee.compareTo(BigInt.zero) > 0) {
-      result +=
-          "\nFee: ${formatUnit(this.fee.toString(), decimals)} $tokenSymbol";
-    }
-    if (nonce) {
-      result += "\nNonce: ${this.nonce}";
-    }
-    return result;
+  String appendNonce(String message) {
+    return message + "\nNonce: ${this.nonce}";
   }
 }
 
-extension ToEthereumMessageChangePubKey on ChangePubKey {
+extension ToEthereumSignData on ChangePubKey {
   Uint8List toEthereumSignData() {
     final data = [
       this.newPkHash.addressBytes,
@@ -377,14 +389,5 @@ extension ToEthereumMessageChangePubKey on ChangePubKey {
     ];
 
     return Uint8List.fromList(data.expand((x) => x).toList());
-  }
-
-  String toEthereumSignMessagePart(String tokenSymbol, int decimals) {
-    var result = "Set signing key: ${this.newPkHash.hexHash}";
-    if (this.fee.compareTo(BigInt.zero) > 0) {
-      result +=
-          "\nFee: ${formatUnit(this.fee.toString(), decimals)} $tokenSymbol";
-    }
-    return result;
   }
 }

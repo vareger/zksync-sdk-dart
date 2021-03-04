@@ -118,3 +118,19 @@ String formatUnit(String wei, int units) {
   }
   return wei;
 }
+
+var _byteMask = BigInt.from(0xff);
+
+/// Encode as Big Endian unsigned byte array.
+Uint8List encodeBigIntAsUnsigned(BigInt number) {
+  if (number == BigInt.zero) {
+    return Uint8List.fromList([0]);
+  }
+  var size = number.bitLength + (number.isNegative ? 8 : 7) >> 3;
+  var result = Uint8List(size);
+  for (var i = 0; i < size; i++) {
+    result[size - i - 1] = (number & _byteMask).toInt();
+    number = number >> 8;
+  }
+  return result;
+}
