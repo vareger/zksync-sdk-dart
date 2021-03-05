@@ -74,28 +74,28 @@ void main() async {
     final expected =
         '849281ea1b3a97b3fe30fbd25184db3e7860db96e3be9d53cf643bd5cf7805a30dbf685c1e63fd75968a61bd83d3a1fb3a0b1c68c71fe87d96f1c1cb7de45b05';
     final result = await zkSigner.sign(transfer);
-    expect(hex.encode(result), equals(expected));
+    expect(result.signature.signature, equals(expected));
   });
 
   test('sign single withdraw (zk)', () async {
     final expected =
         'ee8b58e252ecdf76fc4275e87c88072d0c4d50b53c40ac3fd83a396f0989d108d92983a943f08c7ca5a63d9be891185867b89c2450f4d9b73526e1c35c4bf600';
     final result = await zkSigner.sign(withdraw);
-    expect(hex.encode(result), equals(expected));
+    expect(result.signature.signature, equals(expected));
   });
 
   test('sign single change pubkey (zk)', () async {
     final expected =
         '3c206b2d9b6dc055aba53ccbeca6c1620a42fc45bdd66282618fd1f055fdf90c00101973507694fb66edaa5d4591a2b4f56bbab876dc7579a17c7fe309c80301';
     final result = await zkSigner.sign(changePubKey);
-    expect(hex.encode(result), equals(expected));
+    expect(result.signature.signature, equals(expected));
   });
 
   test('sign single forced exit (zk)', () async {
     final expected =
         '5e5089771f94222d64ad7d4a8853bf83d53bf3c063b91250ece46ccefd45d19a1313aee79f19e73dcf11f12ae0fb8c3fdb83bf4fa704384c5c82b4de0831ea03';
     final result = await zkSigner.sign(forcedExit);
-    expect(hex.encode(result), equals(expected));
+    expect(result.signature.signature, equals(expected));
   });
 
   test('sign single transfer (eth)', () async {

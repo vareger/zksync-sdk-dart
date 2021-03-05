@@ -45,11 +45,28 @@ enum ChangePubKeyType {
   CREATE2,
 }
 
+extension AuthTypeParam on ChangePubKeyType {
+  String toParam() {
+    switch (this) {
+      case ChangePubKeyType.ONCHAIN:
+        return "Onchain";
+      case ChangePubKeyType.ECDSA:
+        return "ECDSA";
+      case ChangePubKeyType.CREATE2:
+        return "CREATE2";
+      default:
+        throw 'Incorrect ChangePubKey auth type';
+    }
+  }
+}
+
 abstract class ChangePubKeyVariant {
   ChangePubKeyType get type;
   Uint8List get bytes;
 
   const ChangePubKeyVariant();
+
+  Map<String, dynamic> toJson();
 }
 
 class ChangePubKeyOnchainVariant extends ChangePubKeyVariant {
@@ -67,6 +84,9 @@ class ChangePubKeyOnchainVariant extends ChangePubKeyVariant {
 
   @override
   Uint8List get bytes => bigIntegerToBytes(BigInt.zero, 32);
+
+  @override
+  Map<String, dynamic> toJson() => {"type": this.type.toParam()};
 }
 
 class ChangePubKeyECDSAVariant extends ChangePubKeyVariant {
@@ -78,6 +98,13 @@ class ChangePubKeyECDSAVariant extends ChangePubKeyVariant {
 
   @override
   Uint8List get bytes => hexToBytes(batchHash);
+
+  @override
+  Map<String, dynamic> toJson() => {
+        "type": this.type.toParam(),
+        "ethSignature": this.ethSignature,
+        "batchHash": this.batchHash,
+      };
 }
 
 class ChangePubKeyCREATE2Variant extends ChangePubKeyVariant {
@@ -90,6 +117,14 @@ class ChangePubKeyCREATE2Variant extends ChangePubKeyVariant {
 
   @override
   Uint8List get bytes => bigIntegerToBytes(BigInt.zero, 32);
+
+  @override
+  Map<String, dynamic> toJson() => {
+        "type": this.type.toParam(),
+        "creatorAddress": this.creatorAddress.hex,
+        "saltArg": this.saltArg,
+        "codeHash": this.codeHash,
+      };
 }
 
 extension ToParam on TransactionType {
@@ -120,10 +155,11 @@ extension ToParam on TransactionType {
 abstract class Transaction {
   final type = '';
 
-  Signature signature;
   BigInt fee;
   int nonce;
   TimeRange timeRange;
+
+  Map<String, dynamic> toJson();
 }
 
 abstract class FundingTransaction extends Transaction {
@@ -139,8 +175,7 @@ class Transfer extends FundingTransaction {
   get type => "Transfer";
 
   Transfer(int accountId, EthereumAddress from, EthereumAddress to, int token,
-      BigInt amount, BigInt fee, int nonce, TimeRange timeRange,
-      [Signature signature]) {
+      BigInt amount, BigInt fee, int nonce, TimeRange timeRange) {
     this.accountId = accountId;
     this.from = from;
     this.to = to;
@@ -149,11 +184,21 @@ class Transfer extends FundingTransaction {
     this.fee = fee;
     this.nonce = nonce;
     this.timeRange = timeRange;
-
-    if (signature != null) {
-      this.signature = signature;
-    }
   }
+
+  @override
+  Map<String, dynamic> toJson() => {
+        "type": this.type,
+        "accountId": this.accountId,
+        "from": this.from.hex,
+        "to": this.to.hex,
+        "token": this.token,
+        "amount": this.amount.toString(),
+        "fee": this.fee.toString(),
+        "nonce": this.nonce,
+        "validFrom": this.timeRange.validFromSeconds,
+        "validUntil": this.timeRange.validUntilSeconds,
+      };
 }
 
 class Withdraw extends FundingTransaction {
@@ -161,8 +206,7 @@ class Withdraw extends FundingTransaction {
   get type => "Withdraw";
 
   Withdraw(int accountId, EthereumAddress from, EthereumAddress to, int token,
-      BigInt amount, BigInt fee, int nonce, TimeRange timeRange,
-      [Signature signature]) {
+      BigInt amount, BigInt fee, int nonce, TimeRange timeRange) {
     this.accountId = accountId;
     this.from = from;
     this.to = to;
@@ -171,11 +215,21 @@ class Withdraw extends FundingTransaction {
     this.fee = fee;
     this.nonce = nonce;
     this.timeRange = timeRange;
-
-    if (signature != null) {
-      this.signature = signature;
-    }
   }
+
+  @override
+  Map<String, dynamic> toJson() => {
+        "type": this.type,
+        "accountId": this.accountId,
+        "from": this.from.hex,
+        "to": this.to.hex,
+        "token": this.token,
+        "amount": this.amount.toString(),
+        "fee": this.fee.toString(),
+        "nonce": this.nonce,
+        "validFrom": this.timeRange.validFromSeconds,
+        "validUntil": this.timeRange.validUntilSeconds,
+      };
 }
 
 class ForcedExit extends Transaction {
@@ -187,19 +241,26 @@ class ForcedExit extends Transaction {
   int token;
 
   ForcedExit(int initiatorAccountId, EthereumAddress target, int token,
-      BigInt fee, int nonce, TimeRange timeRange,
-      [Signature signature]) {
+      BigInt fee, int nonce, TimeRange timeRange) {
     this.initiatorAccountId = initiatorAccountId;
     this.target = target;
     this.token = token;
     this.fee = fee;
     this.nonce = nonce;
     this.timeRange = timeRange;
-
-    if (signature != null) {
-      this.signature = signature;
-    }
   }
+
+  @override
+  Map<String, dynamic> toJson() => {
+        "type": this.type,
+        "initiatorAccountId": this.initiatorAccountId,
+        "target": this.target.hex,
+        "token": this.token,
+        "fee": this.fee.toString(),
+        "nonce": this.nonce,
+        "validFrom": this.timeRange.validFromSeconds,
+        "validUntil": this.timeRange.validUntilSeconds,
+      };
 }
 
 class ChangePubKey<T extends ChangePubKeyVariant> extends Transaction {
@@ -210,41 +271,61 @@ class ChangePubKey<T extends ChangePubKeyVariant> extends Transaction {
   EthereumAddress account;
   ZksPubkeyHash newPkHash;
   int feeToken;
-  String ethSignature;
   T ethAuthData;
 
   ChangePubKey(int accountId, EthereumAddress account, ZksPubkeyHash newPkHash,
-      int feeToken, BigInt fee, int nonce, TimeRange timeRange, T ethAuthData,
-      [Signature signature]) {
+      int feeToken, BigInt fee, int nonce, TimeRange timeRange, T ethAuthData) {
     this.accountId = accountId;
     this.account = account;
     this.newPkHash = newPkHash;
     this.feeToken = feeToken;
-    this.ethSignature = ethSignature;
     this.fee = fee;
     this.nonce = nonce;
     this.timeRange = timeRange;
     this.ethAuthData = ethAuthData;
-
-    if (signature != null) {
-      this.signature = signature;
-    }
   }
+
+  @override
+  Map<String, dynamic> toJson() => {
+        "type": this.type,
+        "accountId": this.accountId,
+        "account": this.account.hex,
+        "newPkHash": this.newPkHash.hexHashPrefix,
+        "feeToken": this.feeToken,
+        "ethAuthData": this.ethAuthData.toJson(),
+        "fee": this.fee.toString(),
+        "nonce": this.nonce,
+        "validFrom": this.timeRange.validFromSeconds,
+        "validUntil": this.timeRange.validUntilSeconds,
+      };
+}
+
+class SignedTransaction<T extends Transaction> {
+  final T transaction;
+  final Signature signature;
+
+  const SignedTransaction(this.transaction, this.signature);
+
+  Map<String, dynamic> toJson() =>
+      transaction.toJson()..addAll({"signature": this.signature.toJson()});
 }
 
 class Signature {
-  String pubKey;
-  String signature;
+  final String pubKey;
+  final String signature;
+
+  const Signature(this.pubKey, this.signature);
+
+  Map<String, dynamic> toJson() =>
+      {"pubKey": this.pubKey, "signature": this.signature};
 }
 
 class EthSignature {
   SignatureType type;
   String signature;
-}
 
-class SignedTransaction<T extends Transaction> {
-  T transaction;
-  EthSignature ethereumSignature;
+  Map<String, dynamic> toJson() =>
+      {"type": this.type, "signature": this.signature};
 }
 
 enum SignatureType { EthereumSignature, EIP1271Signature }

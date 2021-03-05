@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:ffi';
 import 'dart:typed_data';
 
+import 'package:convert/convert.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart' as web3;
 import 'package:zksync/client.dart';
@@ -102,7 +103,8 @@ class ZksSigher {
 
   String get publicKeyHash => "sync:" + _pubkeyHash.toHexString();
 
-  Future<Uint8List> sign<T extends Transaction>(T transaction) async {
+  Future<SignedTransaction<T>> sign<T extends Transaction>(
+      T transaction) async {
     final data = transaction.toBytes();
     final signature = _lib.sign(_privateKey, data);
     final refData = signature.ref.data;
@@ -110,7 +112,8 @@ class ZksSigher {
     for (int i = 0; i < result.length; i++) {
       result[i] = refData[i];
     }
-    return result;
+    final signatureOb = Signature(this.publicKey, hex.encode(result));
+    return SignedTransaction(transaction, signatureOb);
   }
 
   Future<Uint8List> signMessage(Uint8List payload) async {

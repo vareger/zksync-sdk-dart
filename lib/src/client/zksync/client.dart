@@ -77,8 +77,24 @@ class ZkSyncClient {
     return await _makeRPCCall<String>("get_eth_tx_for_withdrawal");
   }
 
-  Future<String> submitTx<T extends Transaction>(T transaction, bool fast,
-      [EthSignature signature]) async {}
+  Future<String> submitTx<T extends Transaction>(
+      SignedTransaction<T> transaction,
+      [EthSignature signature]) async {
+    return await _makeRPCCall<String>(
+        "tx_submit", [transaction.toJson(), signature?.toJson(), false]);
+  }
+
+  Future<String> submitFastTx(SignedTransaction<Withdraw> transaction,
+      [EthSignature signature]) async {
+    return await _makeRPCCall<String>(
+        "tx_submit", [transaction.toJson(), signature?.toJson(), true]);
+  }
+
+  Future<String> submitBatchTx(List<SignedTransaction> transactions,
+      [EthSignature signature]) async {
+    return await _makeRPCCall<String>(
+        "submit_txs_batch", [transactions, signature?.toJson()]);
+  }
 }
 
 enum ChainId { Mainnet, Ropsten, Rinkeby, Localhost }
