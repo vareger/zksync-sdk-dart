@@ -3,11 +3,13 @@ import 'package:test/test.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:zksync/client.dart';
 import 'package:zksync/credentials.dart';
-import 'package:zksync/src/credentials/zksigner.dart';
 
 void main() async {
-  const mockToken =
-      Token(0, '0x0000000000000000000000000000000000000000', 'ETH', 0);
+  final mockToken = Token(
+      0,
+      EthereumAddress.fromHex('0x0000000000000000000000000000000000000000'),
+      'ETH',
+      0);
 
   final privateKey =
       '000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f';

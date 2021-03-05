@@ -4,7 +4,6 @@ import 'package:test/test.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:zksync/client.dart';
 import 'package:zksync/credentials.dart';
-import 'package:zksync/src/credentials/zksigner.dart';
 
 void main() async {
   final privateKey =

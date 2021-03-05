@@ -1,19 +1,22 @@
 part of 'package:zksync/client.dart';
 
 class Token {
-  static const Token eth =
-      Token(0, "0x0000000000000000000000000000000000000000", "ETH", 18);
+  static final Token eth = Token(
+      0,
+      EthereumAddress.fromHex("0x0000000000000000000000000000000000000000"),
+      "ETH",
+      18);
 
   final int id;
-  final String address;
+  final EthereumAddress address;
   final String symbol;
   final int decimals;
 
-  const Token(this.id, this.address, this.symbol, this.decimals);
+  Token(this.id, this.address, this.symbol, this.decimals);
 
   Token.fromJson(Map<String, dynamic> json)
       : id = json["id"],
-        address = json["address"],
+        address = EthereumAddress.fromHex(json["address"]),
         symbol = json["symbol"],
         decimals = json["decimals"];
 

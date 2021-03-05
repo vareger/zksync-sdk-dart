@@ -1,72 +1,14 @@
-import 'dart:convert';
-import 'dart:ffi';
-import 'dart:typed_data';
-
-import 'package:convert/convert.dart';
-import 'package:web3dart/crypto.dart';
-import 'package:web3dart/web3dart.dart' as web3;
-import 'package:zksync/client.dart';
-import 'package:zksync/src/native/zks_crypto.dart';
-import 'package:zksync/src/native/zks_crypto_bindings.dart';
+part of 'package:zksync/credentials.dart';
 
 const String MESSAGE =
     "Access zkSync account.\n\nOnly sign this message for a trusted client!";
 
-class EthSigner {
-  web3.EthPrivateKey _credentials;
-  int chainId;
-
-  EthSigner.raw(Uint8List rawKey, {int chainId}) {
-    _credentials = web3.EthPrivateKey(rawKey);
-    chainId = chainId;
-  }
-
-  EthSigner.hex(String hexKey, {int chainId}) {
-    _credentials = web3.EthPrivateKey.fromHex(hexKey);
-    chainId = chainId;
-  }
-
-  EthSigner(this._credentials, [this.chainId]);
-
-  Future<web3.EthereumAddress> address() async {
-    return _credentials.extractAddress();
-  }
-
-  Future<Uint8List> signPersonalMessage(Uint8List payload) {
-    return _credentials.signPersonalMessage(payload, chainId: chainId);
-  }
-
-  Future<Uint8List> sign<T extends Transaction>(
-      T transaction, Token token) async {
-    final message = transaction
-        .toEthereumSignMessage(token.symbol, token.decimals, nonce: true);
-    return _credentials.signPersonalMessage(Utf8Encoder().convert(message),
-        chainId: chainId);
-  }
-
-  Future<Uint8List> signBatch(
-      List<Transaction> transactions, Token token) async {
-    final first = transactions.first;
-    final prepared = transactions
-        .map((t) =>
-            t.toEthereumSignMessage(token.symbol, token.decimals, nonce: false))
-        .join("\n");
-    final message = first.appendNonce(prepared);
-    final signature = await _credentials
-        .signPersonalMessage(Utf8Encoder().convert(message), chainId: chainId);
-
-    return signature;
-  }
-
-  Future<Uint8List> signAuth(ChangePubKey transaction) {}
-}
-
 class ZksSigher {
   static final _lib = ZksCrypto();
 
-  Pointer<ZksPrivateKey> _privateKey;
-  Pointer<ZksPackedPublicKey> _publicKey;
-  Pointer<ZksPubkeyHash> _pubkeyHash;
+  Pointer<binding.ZksPrivateKey> _privateKey;
+  Pointer<binding.ZksPackedPublicKey> _publicKey;
+  Pointer<binding.ZksPubkeyHash> _pubkeyHash;
 
   ZksSigher.raw(Uint8List rawKey) {
     _privateKey = _lib.generatePrivateKeyFromRaw(rawKey);

@@ -200,8 +200,12 @@ void main() {
     expect(tokens['ETH'], equals(Token.eth));
     expect(
         tokens['USDT'],
-        equals(
-            Token(1, '0x3b00ef435fa4fcff5c209a37d1f3dcff37c705ad', 'USDT', 6)));
+        equals(Token(
+            1,
+            EthereumAddress.fromHex(
+                '0x3b00ef435fa4fcff5c209a37d1f3dcff37c705ad'),
+            'USDT',
+            6)));
   });
 
   group('token price', () {

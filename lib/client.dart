@@ -5,6 +5,8 @@ import 'package:http/http.dart';
 import 'package:web3dart/credentials.dart';
 import 'package:bit_array/bit_array.dart';
 import 'package:web3dart/crypto.dart';
+import 'package:web3dart/web3dart.dart' hide Transaction;
+import 'package:web3dart/web3dart.dart' as web3;
 import 'package:zksync/credentials.dart';
 
 import 'json_rpc.dart';
@@ -22,3 +24,5 @@ part 'src/client/zksync/tx/withdraw.dart';
 part 'src/client/zksync/tx/forced_exit.dart';
 part 'src/client/zksync/tx/signed.dart';
 part 'src/client/utils/bytes.dart';
+
+part 'src/client/ethereum/client.dart';
