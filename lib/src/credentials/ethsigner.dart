@@ -24,15 +24,16 @@ class EthSigner {
     return _credentials.signPersonalMessage(payload, chainId: chainId);
   }
 
-  Future<Uint8List> sign<T extends Transaction>(
+  Future<EthSignature> sign<T extends Transaction>(
       T transaction, Token token) async {
     final message = transaction
         .toEthereumSignMessage(token.symbol, token.decimals, nonce: true);
-    return _credentials.signPersonalMessage(Utf8Encoder().convert(message),
-        chainId: chainId);
+    final signature = await _credentials
+        .signPersonalMessage(Utf8Encoder().convert(message), chainId: chainId);
+    return EthSignature(SignatureType.EthereumSignature, signature);
   }
 
-  Future<Uint8List> signBatch(
+  Future<EthSignature> signBatch(
       List<Transaction> transactions, Token token) async {
     final first = transactions.first;
     final prepared = transactions
@@ -43,8 +44,13 @@ class EthSigner {
     final signature = await _credentials
         .signPersonalMessage(Utf8Encoder().convert(message), chainId: chainId);
 
-    return signature;
+    return EthSignature(SignatureType.EthereumSignature, signature);
   }
 
-  Future<Uint8List> signAuth(ChangePubKey transaction) {}
+  Future<Uint8List> signAuth(ChangePubKey transaction) {
+    final message = transaction.toEthereumSignData();
+    return _credentials.signPersonalMessage(message, chainId: chainId);
+  }
+
+  Credentials get credentials => this._credentials;
 }
