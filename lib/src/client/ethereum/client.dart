@@ -4,25 +4,25 @@ final MAX_APPROVE_AMOUNT = BigInt.two.pow(256) - BigInt.one;
 final DEFAULT_THRESHOLD = BigInt.two.pow(255);
 
 class EthereumClient {
-  final Web3Client _client;
-  final DeployedContract _contract;
-  final Credentials _credentials;
+  final Web3Client client;
+  final DeployedContract contract;
+  final Credentials credentials;
 
   EthereumClient(String url, Client httpClient, EthereumAddress contractAddr,
       Credentials credentials)
-      : _client = Web3Client(url, httpClient),
-        _contract = DeployedContract(_zkSyncAbi, contractAddr),
-        _credentials = credentials;
+      : client = Web3Client(url, httpClient),
+        contract = DeployedContract(_zkSyncAbi, contractAddr),
+        credentials = credentials;
 
   Future<String> approveDeposits(Token token, [BigInt limit]) async {
     final contract = DeployedContract(_erc20Abi, token.address);
     final approve = contract.function('approve');
-    return this._client.sendTransaction(
-        this._credentials,
+    return this.client.sendTransaction(
+        this.credentials,
         web3.Transaction.callContract(
           contract: contract,
           function: approve,
-          parameters: [this._contract.address, limit ?? MAX_APPROVE_AMOUNT],
+          parameters: [this.contract.address, limit ?? MAX_APPROVE_AMOUNT],
         ),
         fetchChainIdFromNetworkId: true);
   }
@@ -30,14 +30,14 @@ class EthereumClient {
   Future<String> transfer(
       Token token, BigInt amount, EthereumAddress to) async {
     if (token == Token.eth) {
-      return this._client.sendTransaction(this._credentials,
+      return this.client.sendTransaction(this.credentials,
           web3.Transaction(to: to, value: EtherAmount.inWei(amount)),
           fetchChainIdFromNetworkId: true);
     } else {
       final contract = DeployedContract(_erc20Abi, token.address);
       final transfer = contract.function('transfer');
-      return this._client.sendTransaction(
-          this._credentials,
+      return this.client.sendTransaction(
+          this.credentials,
           web3.Transaction.callContract(
             contract: contract,
             function: transfer,
@@ -50,22 +50,22 @@ class EthereumClient {
   Future<String> deposit(
       Token token, BigInt amount, EthereumAddress userAddress) async {
     if (token == Token.eth) {
-      final deposit = this._contract.function('depositETH');
-      return this._client.sendTransaction(
-          this._credentials,
+      final deposit = this.contract.function('depositETH');
+      return this.client.sendTransaction(
+          this.credentials,
           web3.Transaction.callContract(
-            contract: this._contract,
+            contract: this.contract,
             function: deposit,
             parameters: [userAddress],
             value: EtherAmount.inWei(amount),
           ),
           fetchChainIdFromNetworkId: true);
     } else {
-      final deposit = this._contract.function('depositERC20');
-      return this._client.sendTransaction(
-          this._credentials,
+      final deposit = this.contract.function('depositERC20');
+      return this.client.sendTransaction(
+          this.credentials,
           web3.Transaction.callContract(
-              contract: this._contract,
+              contract: this.contract,
               function: deposit,
               parameters: [token.address, amount, userAddress]),
           fetchChainIdFromNetworkId: true);
@@ -74,20 +74,20 @@ class EthereumClient {
 
   Future<String> withdraw(Token token, BigInt amount) async {
     if (token == Token.eth) {
-      final withdraw = this._contract.function('withdrawETH');
-      return this._client.sendTransaction(
-          this._credentials,
+      final withdraw = this.contract.function('withdrawETH');
+      return this.client.sendTransaction(
+          this.credentials,
           web3.Transaction.callContract(
-              contract: this._contract,
+              contract: this.contract,
               function: withdraw,
               parameters: [amount]),
           fetchChainIdFromNetworkId: true);
     } else {
-      final withdraw = this._contract.function('withdrawERC20');
-      return this._client.sendTransaction(
-          this._credentials,
+      final withdraw = this.contract.function('withdrawERC20');
+      return this.client.sendTransaction(
+          this.credentials,
           web3.Transaction.callContract(
-              contract: this._contract,
+              contract: this.contract,
               function: withdraw,
               parameters: [token.address, amount]),
           fetchChainIdFromNetworkId: true);
@@ -95,11 +95,11 @@ class EthereumClient {
   }
 
   Future<String> fullExit(Token token, int accountId) async {
-    final fullExit = this._contract.function('requestFullExit');
-    return this._client.sendTransaction(
-        this._credentials,
+    final fullExit = this.contract.function('requestFullExit');
+    return this.client.sendTransaction(
+        this.credentials,
         web3.Transaction.callContract(
-            contract: this._contract,
+            contract: this.contract,
             function: fullExit,
             parameters: [accountId, token.address]),
         fetchChainIdFromNetworkId: true);
@@ -107,11 +107,11 @@ class EthereumClient {
 
   Future<String> setAuthPubkeyHash(
       ZksPubkeyHash pubKeyhash, BigInt nonce) async {
-    final setAuthPubkeyHash = this._contract.function('setAuthPubkeyHash');
-    return this._client.sendTransaction(
-        this._credentials,
+    final setAuthPubkeyHash = this.contract.function('setAuthPubkeyHash');
+    return this.client.sendTransaction(
+        this.credentials,
         web3.Transaction.callContract(
-            contract: this._contract,
+            contract: this.contract,
             function: setAuthPubkeyHash,
             parameters: [pubKeyhash.addressBytes, nonce]),
         fetchChainIdFromNetworkId: true);
@@ -120,9 +120,9 @@ class EthereumClient {
   Future<bool> isDepositApproved(Token token, [BigInt threshold]) async {
     final contract = DeployedContract(_erc20Abi, token.address);
     final allowance = contract.function('allowance');
-    return this._client.call(contract: contract, function: allowance, params: [
-      await this._credentials.extractAddress(),
-      this._contract.address
+    return this.client.call(contract: contract, function: allowance, params: [
+      await this.credentials.extractAddress(),
+      this.contract.address
     ]).then((v) {
       final allowance = v.first as BigInt;
       return allowance.compareTo(threshold ?? DEFAULT_THRESHOLD) >= 0;
@@ -130,11 +130,11 @@ class EthereumClient {
   }
 
   Future<bool> isOnChainAuthPubkeyHashSet(BigInt nonce) async {
-    final auth = this._contract.function('authFacts');
-    return this._client.call(
-        contract: this._contract,
+    final auth = this.contract.function('authFacts');
+    return this.client.call(
+        contract: this.contract,
         function: auth,
-        params: [await this._credentials.extractAddress(), nonce]).then((v) {
+        params: [await this.credentials.extractAddress(), nonce]).then((v) {
       final pubkeyhash = v.first as Uint8List;
       return pubkeyhash.map((v) {
         return v != 0;
@@ -145,17 +145,17 @@ class EthereumClient {
   }
 
   Future<EtherAmount> getBalance() async {
-    return this._client.getBalance(await this._credentials.extractAddress());
+    return this.client.getBalance(await this.credentials.extractAddress());
   }
 
   Future<int> getNonce() async {
     return this
-        ._client
-        .getTransactionCount(await this._credentials.extractAddress());
+        .client
+        .getTransactionCount(await this.credentials.extractAddress());
   }
 
   EthereumAddress contractAddress() {
-    return _contract.address;
+    return contract.address;
   }
 }
 
