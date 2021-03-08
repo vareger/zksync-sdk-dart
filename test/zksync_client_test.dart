@@ -63,11 +63,11 @@ void main() {
       verify(client.post(any,
           headers: anyNamed('headers'), body: startsWith(payload)));
 
-      expect(fee.totalFee, equals('1939000000000'));
-      expect(fee.gasTxAmount, equals('650'));
-      expect(fee.gasPriceWei, equals('1000000000'));
-      expect(fee.gasFee, equals('845000000000'));
-      expect(fee.zkpFee, equals('1094841600216'));
+      expect(fee.totalFee, equals(BigInt.parse('1939000000000')));
+      expect(fee.gasTxAmount, equals(BigInt.parse('650')));
+      expect(fee.gasPriceWei, equals(BigInt.parse('1000000000')));
+      expect(fee.gasFee, equals(BigInt.parse('845000000000')));
+      expect(fee.zkpFee, equals(BigInt.parse('1094841600216')));
     });
 
     test('get withdraw fee', () async {
@@ -91,11 +91,11 @@ void main() {
       verify(client.post(any,
           headers: anyNamed('headers'), body: startsWith(payload)));
 
-      expect(fee.totalFee, equals('71700000000000'));
-      expect(fee.gasTxAmount, equals('52700'));
-      expect(fee.gasPriceWei, equals('1000000000'));
-      expect(fee.gasFee, equals('68510000000000'));
-      expect(fee.zkpFee, equals('3284524800648'));
+      expect(fee.totalFee, equals(BigInt.parse('71700000000000')));
+      expect(fee.gasTxAmount, equals(BigInt.parse('52700')));
+      expect(fee.gasPriceWei, equals(BigInt.parse('1000000000')));
+      expect(fee.gasFee, equals(BigInt.parse('68510000000000')));
+      expect(fee.zkpFee, equals(BigInt.parse('3284524800648')));
     });
 
     test('get fast withdraw fee', () async {
@@ -119,11 +119,11 @@ void main() {
       verify(client.post(any,
           headers: anyNamed('headers'), body: startsWith(payload)));
 
-      expect(fee.totalFee, equals('688000000000000'));
-      expect(fee.gasTxAmount, equals('527000'));
-      expect(fee.gasPriceWei, equals('1000000000'));
-      expect(fee.gasFee, equals('685100000000000'));
-      expect(fee.zkpFee, equals('3284524800648'));
+      expect(fee.totalFee, equals(BigInt.parse('688000000000000')));
+      expect(fee.gasTxAmount, equals(BigInt.parse('527000')));
+      expect(fee.gasPriceWei, equals(BigInt.parse('1000000000')));
+      expect(fee.gasFee, equals(BigInt.parse('685100000000000')));
+      expect(fee.zkpFee, equals(BigInt.parse('3284524800648')));
     });
 
     test('get change pub key fee', () async {
@@ -147,11 +147,11 @@ void main() {
       verify(client.post(any,
           headers: anyNamed('headers'), body: startsWith(payload)));
 
-      expect(fee.totalFee, equals('19200000000000'));
-      expect(fee.gasTxAmount, equals('12250'));
-      expect(fee.gasPriceWei, equals('1000000000'));
-      expect(fee.gasFee, equals('15925000000000'));
-      expect(fee.zkpFee, equals('3284524800298'));
+      expect(fee.totalFee, equals(BigInt.parse('19200000000000')));
+      expect(fee.gasTxAmount, equals(BigInt.parse('12250')));
+      expect(fee.gasPriceWei, equals(BigInt.parse('1000000000')));
+      expect(fee.gasFee, equals(BigInt.parse('15925000000000')));
+      expect(fee.zkpFee, equals(BigInt.parse('3284524800298')));
     });
 
     test('get change pub key fee with onchain auth', () async {
@@ -175,11 +175,11 @@ void main() {
       verify(client.post(any,
           headers: anyNamed('headers'), body: startsWith(payload)));
 
-      expect(fee.totalFee, equals('10040000000000'));
-      expect(fee.gasTxAmount, equals('5200'));
-      expect(fee.gasPriceWei, equals('1000000000'));
-      expect(fee.gasFee, equals('6760000000000'));
-      expect(fee.zkpFee, equals('3284524800648'));
+      expect(fee.totalFee, equals(BigInt.parse('10040000000000')));
+      expect(fee.gasTxAmount, equals(BigInt.parse('5200')));
+      expect(fee.gasPriceWei, equals(BigInt.parse('1000000000')));
+      expect(fee.gasFee, equals(BigInt.parse('6760000000000')));
+      expect(fee.zkpFee, equals(BigInt.parse('3284524800648')));
     });
   });
 

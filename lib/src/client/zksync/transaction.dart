@@ -19,18 +19,18 @@ abstract class FundingTransaction extends Transaction {
 }
 
 class TransactionFee {
-  String gasTxAmount;
-  String gasPriceWei;
-  String gasFee;
-  String zkpFee;
-  String totalFee;
+  BigInt gasTxAmount;
+  BigInt gasPriceWei;
+  BigInt gasFee;
+  BigInt zkpFee;
+  BigInt totalFee;
 
   TransactionFee.fromJson(Map<String, dynamic> json)
-      : gasTxAmount = json["gasTxAmount"],
-        gasPriceWei = json["gasPriceWei"],
-        gasFee = json["gasFee"],
-        zkpFee = json["zkpFee"],
-        totalFee = json["totalFee"];
+      : gasTxAmount = BigInt.parse(json["gasTxAmount"]),
+        gasPriceWei = BigInt.parse(json["gasPriceWei"]),
+        gasFee = BigInt.parse(json["gasFee"]),
+        zkpFee = BigInt.parse(json["zkpFee"]),
+        totalFee = BigInt.parse(json["totalFee"]);
 }
 
 enum TransactionType {
