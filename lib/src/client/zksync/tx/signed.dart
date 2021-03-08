@@ -22,10 +22,27 @@ class Signature {
 
 class EthSignature {
   SignatureType type;
-  String signature;
+  Uint8List signature;
 
-  Map<String, dynamic> toJson() =>
-      {"type": this.type, "signature": this.signature};
+  EthSignature(this.type, this.signature);
+
+  Map<String, dynamic> toJson() => {
+        "type": this.type.toParam(),
+        "signature": '0x' + hex.encode(this.signature)
+      };
 }
 
 enum SignatureType { EthereumSignature, EIP1271Signature }
+
+extension SignatureTypeToParam on SignatureType {
+  String toParam() {
+    switch (this) {
+      case SignatureType.EthereumSignature:
+        return 'EthereumSignature';
+      case SignatureType.EIP1271Signature:
+        return 'EIP1271Signature';
+      default:
+        throw 'Unsupported signature type';
+    }
+  }
+}
