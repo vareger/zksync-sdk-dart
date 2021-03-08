@@ -104,13 +104,13 @@ void main() async {
     final expected =
         '4684a8f03c5da84676ff4eae89984f20057ce288b3a072605cbf93ef4bcc8a021306b13a88c6d3adc68347f4b68b1cbdf967861005e934afa50ce2e0c5bced791b';
     final result = await ethSigner.sign(transfer, mockToken);
-    expect(result.signature, equals(expected));
+    expect(result.signature, equals(hex.decode(expected)));
   });
 
   test('sign single withdraw (eth)', () async {
     final expected =
         'a87d458c96f2b78c8b615c7703540d5af0c0b5266b12dbd648d8f6824958ed907f40cae683fa77e7a8a5780381cae30a94acf67f880ed30483c5a8480816fc9d1c';
     final result = await ethSigner.sign(withdraw, mockToken);
-    expect(result.signature, equals(expected));
+    expect(result.signature, equals(hex.decode(expected)));
   });
 }
