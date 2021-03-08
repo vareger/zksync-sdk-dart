@@ -21,12 +21,15 @@ class Wallet<Zk extends ZkSyncClient, Eth extends EthereumClient,
       int nonce,
       bool onchainAuth = false,
       TimeRange timeRange}) async {
+    final type = onchainAuth
+        ? TransactionType.CHANGE_PUB_KEY_ONCHAIN_AUTH
+        : TransactionType.CHANGE_PUB_KEY;
     final transaction = ChangePubKey(
       await this.getAccountId(),
       await this.getAddress(),
       pubKeyhash,
       token.id,
-      fee.totalFee,
+      await this._OrFee(type, fee, await this.getAddress(), token),
       nonce ?? await this.getNonce(),
       timeRange ?? TimeRange.def(),
       onchainAuth
@@ -45,7 +48,7 @@ class Wallet<Zk extends ZkSyncClient, Eth extends EthereumClient,
         to,
         token.id,
         amount,
-        fee.totalFee,
+        await this._OrFee(TransactionType.TRANSFER, fee, to, token),
         nonce ?? await this.getNonce(),
         timeRange ?? TimeRange.def());
     final signed = await this._signer.sign(transaction);
@@ -62,13 +65,15 @@ class Wallet<Zk extends ZkSyncClient, Eth extends EthereumClient,
       int nonce,
       TimeRange timeRange,
       bool fast = false}) async {
+    final type =
+        fast ? TransactionType.FAST_WITHDRAW : TransactionType.WITHDRAW;
     final transaction = Withdraw(
         await this.getAccountId(),
         await this.getAddress(),
         to,
         token.id,
         amount,
-        fee.totalFee,
+        await this._OrFee(type, fee, to, token),
         nonce ?? await this.getNonce(),
         timeRange ?? TimeRange.def());
     final signed = await this._signer.sign(transaction);
@@ -85,7 +90,7 @@ class Wallet<Zk extends ZkSyncClient, Eth extends EthereumClient,
         await this.getAccountId(),
         to,
         token.id,
-        fee.totalFee,
+        await this._OrFee(TransactionType.FORCED_EXIT, fee, to, token),
         nonce ?? await this.getNonce(),
         timeRange ?? TimeRange.def());
     final signed = await this._signer.sign(transaction);
@@ -125,5 +130,17 @@ class Wallet<Zk extends ZkSyncClient, Eth extends EthereumClient,
 
   Future<int> _getAccountId() async {
     return (await this.getState()).id;
+  }
+
+  Future<BigInt> _OrFee(TransactionType type, TransactionFee fee,
+      EthereumAddress address, Token token) async {
+    if (fee != null) {
+      return fee.totalFee;
+    } else {
+      return this
+          ._zksync
+          .getTransactionFee(type, address, TokenLike.id(token.id))
+          .then((v) => v.totalFee);
+    }
   }
 }
