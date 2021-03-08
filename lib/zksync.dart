@@ -1,4 +1,8 @@
 library zksync;
 
-import 'dart:html';
-import 'package:http/http.dart';
+import 'package:web3dart/credentials.dart';
+import 'package:zksync/client.dart';
+import 'package:zksync/credentials.dart';
+import 'package:quiver/cache.dart';
+
+part 'src/wallet/wallet.dart';

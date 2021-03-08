@@ -19,6 +19,7 @@ dependencies:
   web3dart: 2.0.0-dev.9
   bit_array: ^2.0.0
   json_annotation: ^3.0.0
+  quiver: ^2.1.5
 
 dev_dependencies:
   web_socket_channel: ^1.0.0
