@@ -101,7 +101,7 @@ class EthereumClient {
         web3.Transaction.callContract(
             contract: this.contract,
             function: fullExit,
-            parameters: [accountId, token.address]),
+            parameters: [BigInt.from(accountId), token.address]),
         fetchChainIdFromNetworkId: true);
   }
 
