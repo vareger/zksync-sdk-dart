@@ -209,8 +209,8 @@ void main() {
         1,
         BigInt.from(10000),
         42,
-        TimeRange.raw(1, 123456789),
-        ChangePubKeyOnchainVariant());
+        TimeRange.raw(1, 123456789));
+    transaction.setAuth(ChangePubKeyOnchainVariant());
     final result = transaction.toBytes();
     expect(
         result,
@@ -404,8 +404,8 @@ void main() {
         1,
         BigInt.from(10000),
         42,
-        TimeRange.raw(1, 123456789),
-        ChangePubKeyOnchainVariant());
+        TimeRange.raw(1, 123456789));
+    transaction.setAuth(ChangePubKeyOnchainVariant());
     final result = transaction.toEthereumSignMessage("ETH", 18, nonce: false);
     expect(
         result,
@@ -424,8 +424,8 @@ void main() {
         1,
         BigInt.from(10000),
         42,
-        TimeRange.raw(1, 123456789),
-        ChangePubKeyOnchainVariant());
+        TimeRange.raw(1, 123456789));
+    transaction.setAuth(ChangePubKeyOnchainVariant());
     final result = transaction.toEthereumSignData();
     expect(
         result,

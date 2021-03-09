@@ -32,10 +32,13 @@ class Wallet<Zk extends ZkSyncClient, Eth extends EthereumClient,
       await this._OrFee(type, fee, await this.getAddress(), token),
       nonce ?? await this.getNonce(),
       timeRange ?? TimeRange.def(),
-      onchainAuth
-          ? ChangePubKeyOnchainVariant()
-          : null, // TODO: make signing ethereum message data to ecdsa authentication
     );
+    if (onchainAuth) {
+      transaction.setAuth(ChangePubKeyOnchainVariant());
+    } else {
+      final authSignature = await this._auth.signAuth(transaction);
+      transaction.setAuth(ChangePubKeyECDSAVariant.single(authSignature));
+    }
     final signed = await this._signer.sign(transaction);
     return this._zksync.submitTx(signed);
   }
@@ -77,10 +80,11 @@ class Wallet<Zk extends ZkSyncClient, Eth extends EthereumClient,
         nonce ?? await this.getNonce(),
         timeRange ?? TimeRange.def());
     final signed = await this._signer.sign(transaction);
+    final authSignature = await this._auth.sign(transaction, token);
     if (fast) {
-      return this._zksync.submitFastTx(signed);
+      return this._zksync.submitFastTx(signed, authSignature);
     } else {
-      return this._zksync.submitTx(signed);
+      return this._zksync.submitTx(signed, authSignature);
     }
   }
 
@@ -94,7 +98,8 @@ class Wallet<Zk extends ZkSyncClient, Eth extends EthereumClient,
         nonce ?? await this.getNonce(),
         timeRange ?? TimeRange.def());
     final signed = await this._signer.sign(transaction);
-    return this._zksync.submitTx(signed);
+    final authSignature = await this._auth.sign(transaction, token);
+    return this._zksync.submitTx(signed, authSignature);
   }
 
   Future<bool> isSigningKeySet() async {

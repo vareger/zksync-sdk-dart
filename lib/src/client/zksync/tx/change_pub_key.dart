@@ -51,20 +51,24 @@ class ChangePubKeyOnchainVariant extends ChangePubKeyVariant {
 }
 
 class ChangePubKeyECDSAVariant extends ChangePubKeyVariant {
-  String ethSignature;
-  String batchHash;
+  Uint8List ethSignature;
+  Uint8List batchHash;
+
+  ChangePubKeyECDSAVariant.single(Uint8List signature)
+      : this.ethSignature = signature,
+        this.batchHash = bigIntegerToBytes(BigInt.zero, 32);
 
   @override
   ChangePubKeyType get type => ChangePubKeyType.ECDSA;
 
   @override
-  Uint8List get bytes => hexToBytes(batchHash);
+  Uint8List get bytes => batchHash;
 
   @override
   Map<String, dynamic> toJson() => {
         "type": this.type.toParam(),
-        "ethSignature": this.ethSignature,
-        "batchHash": this.batchHash,
+        "ethSignature": bytesToHex(this.ethSignature, include0x: true),
+        "batchHash": bytesToHex(this.batchHash, include0x: true),
       };
 }
 
@@ -88,7 +92,7 @@ class ChangePubKeyCREATE2Variant extends ChangePubKeyVariant {
       };
 }
 
-class ChangePubKey<T extends ChangePubKeyVariant> extends Transaction {
+class ChangePubKey extends Transaction {
   @override
   get type => "ChangePubKey";
 
@@ -96,10 +100,10 @@ class ChangePubKey<T extends ChangePubKeyVariant> extends Transaction {
   EthereumAddress account;
   ZksPubkeyHash newPkHash;
   int feeToken;
-  T ethAuthData;
+  ChangePubKeyVariant ethAuthData;
 
   ChangePubKey(int accountId, EthereumAddress account, ZksPubkeyHash newPkHash,
-      int feeToken, BigInt fee, int nonce, TimeRange timeRange, T ethAuthData) {
+      int feeToken, BigInt fee, int nonce, TimeRange timeRange) {
     this.accountId = accountId;
     this.account = account;
     this.newPkHash = newPkHash;
@@ -107,7 +111,10 @@ class ChangePubKey<T extends ChangePubKeyVariant> extends Transaction {
     this.fee = fee;
     this.nonce = nonce;
     this.timeRange = timeRange;
-    this.ethAuthData = ethAuthData;
+  }
+
+  void setAuth(ChangePubKeyVariant auth) {
+    this.ethAuthData = auth;
   }
 
   @override

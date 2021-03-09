@@ -45,8 +45,8 @@ void main() async {
       0,
       BigInt.from(1000000000),
       13,
-      TimeRange.raw(0, 4294967295),
-      ChangePubKeyOnchainVariant());
+      TimeRange.raw(0, 4294967295));
+  changePubKey.setAuth(ChangePubKeyOnchainVariant());
 
   final forcedExit = ForcedExit(
       44,

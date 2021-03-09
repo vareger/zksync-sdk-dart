@@ -114,7 +114,8 @@ extension ToEthereumSignData on ChangePubKey {
       this.newPkHash.addressBytes,
       this.nonce.uint32BigEndianBytes(),
       this.accountId.uint32BigEndianBytes(),
-      this.ethAuthData.bytes
+      bigIntegerToBytes(
+          BigInt.zero, 32) // FIXME: Change to correctness support batch sign
     ];
 
     return Uint8List.fromList(data.expand((x) => x).toList());
