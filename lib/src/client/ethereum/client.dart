@@ -8,10 +8,11 @@ class EthereumClient {
   final DeployedContract contract;
   final Credentials credentials;
 
-  EthereumClient(String url, Client httpClient, EthereumAddress contractAddr,
-      Credentials credentials)
-      : client = Web3Client(url, httpClient),
-        contract = DeployedContract(_zkSyncAbi, contractAddr),
+  EthereumClient(String url, Credentials credentials, ChainId chainId,
+      {Client httpClient, EthereumAddress contractAddr})
+      : client = Web3Client(url, httpClient ?? Client()),
+        contract = DeployedContract(
+            _zkSyncAbi, contractAddr ?? chainId.mainContract()),
         credentials = credentials;
 
   Future<String> approveDeposits(Token token, [BigInt limit]) async {
@@ -156,6 +157,24 @@ class EthereumClient {
 
   EthereumAddress contractAddress() {
     return contract.address;
+  }
+}
+
+extension ZkSyncMainContract on ChainId {
+  EthereumAddress mainContract() {
+    switch (this) {
+      case ChainId.Mainnet:
+        return EthereumAddress.fromHex(
+            '0xabea9132b05a70803a4e85094fd0e1800777fbef');
+      case ChainId.Ropsten:
+        return EthereumAddress.fromHex(
+            '0x17de8874259c59cd9f7e6ec86b6813bda661a57c');
+      case ChainId.Rinkeby:
+        return EthereumAddress.fromHex(
+            '0x82f67958a5474e40e1485742d648c0b0686b6e5d');
+      default:
+        throw 'Cannot use predefined contract address with this chain id';
+    }
   }
 }
 
