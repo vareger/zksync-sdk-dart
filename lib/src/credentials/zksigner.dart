@@ -3,33 +3,33 @@ part of 'package:zksync/credentials.dart';
 const String MESSAGE =
     "Access zkSync account.\n\nOnly sign this message for a trusted client!";
 
-class ZksSigher {
+class ZksSigner {
   static final _lib = ZksCrypto();
 
   Pointer<binding.ZksPrivateKey> _privateKey;
   Pointer<binding.ZksPackedPublicKey> _publicKey;
   Pointer<binding.ZksPubkeyHash> _pubkeyHash;
 
-  ZksSigher.raw(Uint8List rawKey) {
+  ZksSigner.raw(Uint8List rawKey) {
     _privateKey = _lib.generatePrivateKeyFromRaw(rawKey);
     _publicKey = _lib.getPublicKey(_privateKey);
     _pubkeyHash = _lib.getPublicKeyHash(_publicKey);
   }
 
-  ZksSigher.hex(String hexKey) {
+  ZksSigner.hex(String hexKey) {
     final rawKey = hexToBytes(hexKey);
     _privateKey = _lib.generatePrivateKeyFromRaw(rawKey);
     _publicKey = _lib.getPublicKey(_privateKey);
     _pubkeyHash = _lib.getPublicKeyHash(_publicKey);
   }
 
-  ZksSigher.seed(Uint8List seed) {
+  ZksSigner.seed(Uint8List seed) {
     _privateKey = _lib.generatePrivateKeyFromSeed(seed);
     _publicKey = _lib.getPublicKey(_privateKey);
     _pubkeyHash = _lib.getPublicKeyHash(_publicKey);
   }
 
-  static Future<ZksSigher> fromEthSigner(
+  static Future<ZksSigner> fromEthSigner(
       EthSigner ethereum, ChainId chainId) async {
     var message = MESSAGE;
     if (chainId != ChainId.Mainnet) {
@@ -38,7 +38,7 @@ class ZksSigher {
     final data = Utf8Encoder().convert(message);
     Uint8List signature = await ethereum.signPersonalMessage(data);
 
-    return ZksSigher.seed(signature);
+    return ZksSigner.seed(signature);
   }
 
   String get publicKey => _publicKey.toHexString();

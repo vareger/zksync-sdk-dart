@@ -11,7 +11,7 @@ void main() async {
 
   final ethSigner =
       EthSigner.hex(privateKey, chainId: ChainId.Mainnet.getChainId());
-  final zkSigner = await ZksSigher.fromEthSigner(ethSigner, ChainId.Mainnet);
+  final zkSigner = await ZksSigner.fromEthSigner(ethSigner, ChainId.Mainnet);
 
   test('encode signed changePubKey to Json', () async {
     final changePubKey = ChangePubKey(

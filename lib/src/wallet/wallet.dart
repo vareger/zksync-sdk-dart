@@ -3,7 +3,7 @@ part of 'package:zksync/zksync.dart';
 enum _CacheKey { AccountId, Address }
 
 class Wallet<Zk extends ZkSyncClient, Eth extends EthereumClient,
-    Signer extends ZksSigher, Auth extends EthSigner> {
+    Signer extends ZksSigner, Auth extends EthSigner> {
   final _cache = MapCache<_CacheKey, dynamic>();
   final Zk _zksync;
   final Signer _signer;

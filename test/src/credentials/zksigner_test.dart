@@ -16,7 +16,7 @@ void main() async {
 
   final ethSigner =
       EthSigner.hex(privateKey, chainId: ChainId.Mainnet.getChainId());
-  final zkSigner = await ZksSigher.fromEthSigner(ethSigner, ChainId.Mainnet);
+  final zkSigner = await ZksSigner.fromEthSigner(ethSigner, ChainId.Mainnet);
 
   final transfer = Transfer(
       44,
@@ -57,7 +57,7 @@ void main() async {
       TimeRange.raw(0, 4294967295));
 
   test('generate public key (zk)', () async {
-    final zkSigner = ZksSigher.seed(hex.decode(
+    final zkSigner = ZksSigner.seed(hex.decode(
         '000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f'));
     final expectedPublicKey =
         '17f3708f5e2b2c39c640def0cf0010fd9dd9219650e389114ea9da47f5874184';
