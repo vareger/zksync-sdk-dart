@@ -320,4 +320,124 @@ void main() {
       expect(rdata[i], equals(expected[i]));
     }
   });
+
+  test('verify signed message', () {
+    final pk = [
+      23,
+      156,
+      58,
+      89,
+      20,
+      125,
+      48,
+      49,
+      108,
+      136,
+      102,
+      40,
+      133,
+      35,
+      72,
+      201,
+      180,
+      42,
+      24,
+      184,
+      33,
+      8,
+      74,
+      201,
+      239,
+      121,
+      189,
+      115,
+      233,
+      185,
+      78,
+      141
+    ];
+    var publicKey = allocate<ZksPackedPublicKey>();
+    var publicKeyRef = publicKey.ref;
+    var data = publicKeyRef.data;
+    for (int i = 0; i < 32; i++) {
+      data[i] = pk[i];
+    }
+
+    final sig = [
+      200,
+      120,
+      96,
+      33,
+      53,
+      162,
+      157,
+      64,
+      138,
+      0,
+      128,
+      235,
+      84,
+      106,
+      21,
+      29,
+      244,
+      141,
+      137,
+      185,
+      154,
+      90,
+      77,
+      35,
+      162,
+      196,
+      69,
+      139,
+      208,
+      156,
+      120,
+      4,
+      5,
+      244,
+      149,
+      211,
+      234,
+      83,
+      90,
+      67,
+      70,
+      178,
+      95,
+      179,
+      225,
+      245,
+      198,
+      116,
+      237,
+      224,
+      193,
+      56,
+      216,
+      35,
+      155,
+      61,
+      4,
+      175,
+      35,
+      236,
+      101,
+      132,
+      176,
+      3
+    ];
+    var signature = allocate<ZksSignature>();
+    var signatureRef = signature.ref;
+    var sigData = signatureRef.data;
+    for (int i = 0; i < 64; i++) {
+      sigData[i] = sig[i];
+    }
+    final message = Utf8Encoder().convert("hello");
+    final result = zksCrypto.verify(publicKey, signature, message);
+
+    expect(result, isTrue);
+  });
 }

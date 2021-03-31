@@ -63,6 +63,16 @@ class ZksCrypto {
     _dylib.zks_crypto_sign_musig(privateKey, data, message.length, result);
     return result;
   }
+
+  bool verify(Pointer<ZksPackedPublicKey> publicKey,
+      Pointer<ZksSignature> signature, Uint8List message) {
+    var data = allocate<Uint8>(count: message.length);
+    data.asTypedList(message.length).setAll(0, message);
+    final result = _dylib.zks_crypto_verify_musig(
+        data, message.length, publicKey, signature);
+
+    return result == 0;
+  }
 }
 
 String _platformPath(String name, {String path}) {
