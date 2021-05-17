@@ -22,12 +22,14 @@ class State {
   int nonce;
   String pubKeyHash;
   Map<String, String> balances;
+  Map<int, NFT> nfts;
 
   State.fromJson(Map<String, dynamic> json)
       : nonce = json["nonce"],
         pubKeyHash = json["pubKeyHash"] {
     balances = new Map<String, String>();
     json["balances"].forEach((k, v) => balances[k] = v);
+    json["nfts"].forEach((k, v) => nfts[k] = v);
   }
 }
 

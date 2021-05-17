@@ -60,6 +60,34 @@ extension ToBytes<T extends Transaction> on T {
           forcedExit.timeRange.validUntilSeconds.uint64BigEndianBytes(),
         ];
         return Uint8List.fromList(bytes.expand((x) => x).toList());
+      case "MintNFT":
+        final mintNft = this as MintNft;
+        final bytes = [
+          [9],
+          mintNft.creatorId.uint32BigEndianBytes(),
+          mintNft.creatorAddress.addressBytes,
+          mintNft.contentHash,
+          mintNft.recipientAddress.addressBytes,
+          mintNft.feeToken.uint32BigEndianBytes(),
+          packFeeAmount(mintNft.fee),
+          mintNft.nonce.uint32BigEndianBytes(),
+        ];
+        return Uint8List.fromList(bytes.expand((x) => x).toList());
+      case "WithdrawNFT":
+        final withdraw = this as WithdrawNft;
+        final bytes = [
+          [10],
+          withdraw.accountId.uint32BigEndianBytes(),
+          withdraw.from.addressBytes,
+          withdraw.to.addressBytes,
+          withdraw.token.uint32BigEndianBytes(),
+          withdraw.feeToken.uint32BigEndianBytes(),
+          packFeeAmount(withdraw.fee),
+          withdraw.nonce.uint32BigEndianBytes(),
+          withdraw.timeRange.validFromSeconds.uint64BigEndianBytes(),
+          withdraw.timeRange.validUntilSeconds.uint64BigEndianBytes(),
+        ];
+        return Uint8List.fromList(bytes.expand((x) => x).toList());
     }
     return Uint8List(0);
   }
@@ -78,6 +106,12 @@ extension ToEthereumMessage<T extends Transaction> on T {
               "${tx.type} ${formatUnit(tx.amount.toString(), decimals)} $tokenSymbol to: ${tx.to.hex}";
         }
         break;
+      case 'WithdrawNFT':
+        {
+          final tx = this as WithdrawNft;
+          result = "${tx.type} ${tx.token} to: ${tx.to}";
+        }
+        break;
       case 'ForcedExit':
         {
           final tx = this as ForcedExit;
@@ -88,6 +122,13 @@ extension ToEthereumMessage<T extends Transaction> on T {
         {
           final tx = this as ChangePubKey;
           result = "Set signing key: ${tx.newPkHash.hexHash}";
+        }
+        break;
+      case 'MintNFT':
+        {
+          final tx = this as MintNft;
+          result =
+              "${tx.type} ${bytesToHex(tx.contentHash, include0x: true)} for: ${tx.recipientAddress.hex}";
         }
         break;
       default:

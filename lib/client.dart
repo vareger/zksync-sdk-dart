@@ -24,6 +24,9 @@ part 'src/client/zksync/tx/transfer.dart';
 part 'src/client/zksync/tx/withdraw.dart';
 part 'src/client/zksync/tx/forced_exit.dart';
 part 'src/client/zksync/tx/signed.dart';
+part 'src/client/zksync/tx/mint_nft.dart';
+part 'src/client/zksync/tx/withdraw_nft.dart';
+part 'src/client/zksync/tx/swap.dart';
 part 'src/client/utils/bytes.dart';
 
 part 'src/client/ethereum/client.dart';

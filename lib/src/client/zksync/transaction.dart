@@ -42,7 +42,10 @@ enum TransactionType {
   CHANGE_PUB_KEY_CREATE2,
   LEGACY_CHANGE_PUB_KEY,
   LEGACY_CHANGE_PUB_KEY_ONCHAIN_AUTH,
-  FORCED_EXIT
+  FORCED_EXIT,
+  MINT_NFT,
+  WITHDRAW_NFT,
+  FAST_WITHDRAW_NFT,
 }
 
 extension ToParam on TransactionType {
@@ -70,6 +73,12 @@ extension ToParam on TransactionType {
         return {"ChangePubKey": "ECDSA"};
       case TransactionType.CHANGE_PUB_KEY_CREATE2:
         return {"ChangePubKey": "CREATE2"};
+      case TransactionType.MINT_NFT:
+        return "MintNFT";
+      case TransactionType.WITHDRAW_NFT:
+        return "WithdrawNFT";
+      case TransactionType.FAST_WITHDRAW_NFT:
+        return "FastWithdrawNFT";
       default:
         return "";
     }

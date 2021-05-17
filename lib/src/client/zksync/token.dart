@@ -29,6 +29,27 @@ class Token {
   }
 }
 
+class NFT {
+  final int id;
+  final String symbol;
+  final EthereumAddress creatorId;
+  final Uint8List contentHash;
+
+  NFT.fromJson(Map<String, dynamic> json)
+      : id = json["id"],
+        creatorId = EthereumAddress.fromHex(json["creatorId"]),
+        symbol = json["symbol"],
+        contentHash = hexToBytes(json["contentHash"]);
+
+  bool operator ==(other) {
+    return (other is NFT) &&
+        other.id == id &&
+        other.symbol == symbol &&
+        other.creatorId == creatorId &&
+        other.contentHash == contentHash;
+  }
+}
+
 class TokenLike {
   final dynamic value;
 
