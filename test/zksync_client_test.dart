@@ -126,7 +126,7 @@ void main() {
       expect(fee.zkpFee, equals(BigInt.parse('3284524800648')));
     });
 
-    test('get change pub key fee', () async {
+    test('get change pub key fee (legacy)', () async {
       when(client.post(any,
               headers: anyNamed('headers'), body: anyNamed('body')))
           .thenAnswer((i) {
@@ -140,7 +140,7 @@ void main() {
           '{"jsonrpc":"2.0","method":"get_tx_fee","params":[{"ChangePubKey":{"onchainPubkeyAuth":false}},"0x0000000000000000000000000000000000000000","ETH"],"id":';
 
       final fee = await zksync.getTransactionFee(
-          TransactionType.CHANGE_PUB_KEY,
+          TransactionType.LEGACY_CHANGE_PUB_KEY,
           EthereumAddress.fromHex('0x0000000000000000000000000000000000000000'),
           TokenLike.symbol("ETH"));
 
@@ -154,7 +154,7 @@ void main() {
       expect(fee.zkpFee, equals(BigInt.parse('3284524800298')));
     });
 
-    test('get change pub key fee with onchain auth', () async {
+    test('get change pub key fee with onchain auth (legacy)', () async {
       when(client.post(any,
               headers: anyNamed('headers'), body: anyNamed('body')))
           .thenAnswer((i) {
@@ -168,7 +168,91 @@ void main() {
           '{"jsonrpc":"2.0","method":"get_tx_fee","params":[{"ChangePubKey":{"onchainPubkeyAuth":true}},"0x0000000000000000000000000000000000000000","ETH"],"id":';
 
       final fee = await zksync.getTransactionFee(
-          TransactionType.CHANGE_PUB_KEY_ONCHAIN_AUTH,
+          TransactionType.LEGACY_CHANGE_PUB_KEY_ONCHAIN_AUTH,
+          EthereumAddress.fromHex('0x0000000000000000000000000000000000000000'),
+          TokenLike.symbol("ETH"));
+
+      verify(client.post(any,
+          headers: anyNamed('headers'), body: startsWith(payload)));
+
+      expect(fee.totalFee, equals(BigInt.parse('10040000000000')));
+      expect(fee.gasTxAmount, equals(BigInt.parse('5200')));
+      expect(fee.gasPriceWei, equals(BigInt.parse('1000000000')));
+      expect(fee.gasFee, equals(BigInt.parse('6760000000000')));
+      expect(fee.zkpFee, equals(BigInt.parse('3284524800648')));
+    });
+
+    test('get change pub key fee with onchain auth new type', () async {
+      when(client.post(any,
+              headers: anyNamed('headers'), body: anyNamed('body')))
+          .thenAnswer((i) {
+        return Future.value(Response(
+          '{"jsonrpc":"2.0","result":{"feeType":{"ChangePubKey":"Onchain"},"gasTxAmount":"5200","gasPriceWei":"1000000000","gasFee":"6760000000000","zkpFee":"3284524800648","totalFee":"10040000000000"},"id":0}',
+          200,
+        ));
+      });
+
+      final payload =
+          '{"jsonrpc":"2.0","method":"get_tx_fee","params":[{"ChangePubKey":"Onchain"},"0x0000000000000000000000000000000000000000","ETH"],"id":';
+
+      final fee = await zksync.getTransactionFee(
+          TransactionType.CHANGE_PUB_KEY_ONCHAIN,
+          EthereumAddress.fromHex('0x0000000000000000000000000000000000000000'),
+          TokenLike.symbol("ETH"));
+
+      verify(client.post(any,
+          headers: anyNamed('headers'), body: startsWith(payload)));
+
+      expect(fee.totalFee, equals(BigInt.parse('10040000000000')));
+      expect(fee.gasTxAmount, equals(BigInt.parse('5200')));
+      expect(fee.gasPriceWei, equals(BigInt.parse('1000000000')));
+      expect(fee.gasFee, equals(BigInt.parse('6760000000000')));
+      expect(fee.zkpFee, equals(BigInt.parse('3284524800648')));
+    });
+
+    test('get change pub key fee with ecdsa auth new type', () async {
+      when(client.post(any,
+              headers: anyNamed('headers'), body: anyNamed('body')))
+          .thenAnswer((i) {
+        return Future.value(Response(
+          '{"jsonrpc":"2.0","result":{"feeType":{"ChangePubKey":"ECDSA"},"gasTxAmount":"5200","gasPriceWei":"1000000000","gasFee":"6760000000000","zkpFee":"3284524800648","totalFee":"10040000000000"},"id":0}',
+          200,
+        ));
+      });
+
+      final payload =
+          '{"jsonrpc":"2.0","method":"get_tx_fee","params":[{"ChangePubKey":"ECDSA"},"0x0000000000000000000000000000000000000000","ETH"],"id":';
+
+      final fee = await zksync.getTransactionFee(
+          TransactionType.CHANGE_PUB_KEY_ECDSA,
+          EthereumAddress.fromHex('0x0000000000000000000000000000000000000000'),
+          TokenLike.symbol("ETH"));
+
+      verify(client.post(any,
+          headers: anyNamed('headers'), body: startsWith(payload)));
+
+      expect(fee.totalFee, equals(BigInt.parse('10040000000000')));
+      expect(fee.gasTxAmount, equals(BigInt.parse('5200')));
+      expect(fee.gasPriceWei, equals(BigInt.parse('1000000000')));
+      expect(fee.gasFee, equals(BigInt.parse('6760000000000')));
+      expect(fee.zkpFee, equals(BigInt.parse('3284524800648')));
+    });
+
+    test('get change pub key fee with create2 auth new type', () async {
+      when(client.post(any,
+              headers: anyNamed('headers'), body: anyNamed('body')))
+          .thenAnswer((i) {
+        return Future.value(Response(
+          '{"jsonrpc":"2.0","result":{"feeType":{"ChangePubKey":"CREATE2"},"gasTxAmount":"5200","gasPriceWei":"1000000000","gasFee":"6760000000000","zkpFee":"3284524800648","totalFee":"10040000000000"},"id":0}',
+          200,
+        ));
+      });
+
+      final payload =
+          '{"jsonrpc":"2.0","method":"get_tx_fee","params":[{"ChangePubKey":"CREATE2"},"0x0000000000000000000000000000000000000000","ETH"],"id":';
+
+      final fee = await zksync.getTransactionFee(
+          TransactionType.CHANGE_PUB_KEY_CREATE2,
           EthereumAddress.fromHex('0x0000000000000000000000000000000000000000'),
           TokenLike.symbol("ETH"));
 

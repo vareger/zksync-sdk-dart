@@ -37,8 +37,11 @@ enum TransactionType {
   WITHDRAW,
   TRANSFER,
   FAST_WITHDRAW,
-  CHANGE_PUB_KEY,
-  CHANGE_PUB_KEY_ONCHAIN_AUTH,
+  CHANGE_PUB_KEY_ONCHAIN,
+  CHANGE_PUB_KEY_ECDSA,
+  CHANGE_PUB_KEY_CREATE2,
+  LEGACY_CHANGE_PUB_KEY,
+  LEGACY_CHANGE_PUB_KEY_ONCHAIN_AUTH,
   FORCED_EXIT
 }
 
@@ -51,16 +54,22 @@ extension ToParam on TransactionType {
         return "Transfer";
       case TransactionType.FAST_WITHDRAW:
         return "FastWithdraw";
-      case TransactionType.CHANGE_PUB_KEY:
+      case TransactionType.LEGACY_CHANGE_PUB_KEY:
         return {
           "ChangePubKey": {"onchainPubkeyAuth": false}
         };
-      case TransactionType.CHANGE_PUB_KEY_ONCHAIN_AUTH:
+      case TransactionType.LEGACY_CHANGE_PUB_KEY_ONCHAIN_AUTH:
         return {
           "ChangePubKey": {"onchainPubkeyAuth": true}
         };
       case TransactionType.FORCED_EXIT:
         return "ForcedExit";
+      case TransactionType.CHANGE_PUB_KEY_ONCHAIN:
+        return {"ChangePubKey": "Onchain"};
+      case TransactionType.CHANGE_PUB_KEY_ECDSA:
+        return {"ChangePubKey": "ECDSA"};
+      case TransactionType.CHANGE_PUB_KEY_CREATE2:
+        return {"ChangePubKey": "CREATE2"};
       default:
         return "";
     }

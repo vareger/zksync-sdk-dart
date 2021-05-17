@@ -22,8 +22,8 @@ class Wallet<Zk extends ZkSyncClient, Eth extends EthereumClient,
       bool onchainAuth = false,
       TimeRange timeRange}) async {
     final type = onchainAuth
-        ? TransactionType.CHANGE_PUB_KEY_ONCHAIN_AUTH
-        : TransactionType.CHANGE_PUB_KEY;
+        ? TransactionType.LEGACY_CHANGE_PUB_KEY_ONCHAIN_AUTH
+        : TransactionType.LEGACY_CHANGE_PUB_KEY;
     final transaction = ChangePubKey(
       await this.getAccountId(),
       await this.getAddress(),
