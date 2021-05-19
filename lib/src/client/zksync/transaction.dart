@@ -6,6 +6,7 @@ abstract class Transaction {
   BigInt fee;
   int nonce;
   TimeRange timeRange;
+  TokenId token;
 
   Map<String, dynamic> toJson();
 }
@@ -14,7 +15,6 @@ abstract class FundingTransaction extends Transaction {
   int accountId;
   EthereumAddress from;
   EthereumAddress to;
-  int token;
   BigInt amount;
 }
 
@@ -26,11 +26,16 @@ class TransactionFee {
   BigInt totalFee;
 
   TransactionFee.fromJson(Map<String, dynamic> json)
-      : gasTxAmount = BigInt.parse(json["gasTxAmount"]),
-        gasPriceWei = BigInt.parse(json["gasPriceWei"]),
-        gasFee = BigInt.parse(json["gasFee"]),
-        zkpFee = BigInt.parse(json["zkpFee"]),
-        totalFee = BigInt.parse(json["totalFee"]);
+      : gasTxAmount = json["gasTxAmount"] != null
+            ? BigInt.parse(json["gasTxAmount"])
+            : null,
+        gasPriceWei = json["gasPriceWei"] != null
+            ? BigInt.parse(json["gasPriceWei"])
+            : null,
+        gasFee = json["gasFee"] != null ? BigInt.parse(json["gasFee"]) : null,
+        zkpFee = json["zkpFee"] != null ? BigInt.parse(json["zkpFee"]) : null,
+        totalFee =
+            json["totalFee"] != null ? BigInt.parse(json["totalFee"]) : null;
 }
 
 enum TransactionType {

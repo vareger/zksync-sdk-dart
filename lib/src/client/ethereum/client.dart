@@ -14,6 +14,13 @@ class EthereumClient {
         contract = DeployedContract(
             _zkSyncAbi, contractAddr ?? chainId.mainContract()),
         credentials = credentials;
+  static Future<EthereumClient> load(
+      ZkSyncClient client, String url, Credentials credentials,
+      {Client httpClient}) async {
+    final contract = await client.getContractAddress();
+    return EthereumClient(url, credentials, null,
+        contractAddr: contract.mainContract);
+  }
 
   Future<String> approveDeposits(Token token, [BigInt limit]) async {
     final contract = DeployedContract(_erc20Abi, token.address);

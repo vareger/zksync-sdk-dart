@@ -7,7 +7,7 @@ class SignedTransaction<T extends Transaction> {
   const SignedTransaction(this.transaction, this.signature);
 
   Map<String, dynamic> toJson() =>
-      transaction.toJson()..addAll({"signature": this.signature.toJson()});
+      transaction.toJson()..addAll({"signature": this.signature?.toJson()});
 }
 
 class Signature {

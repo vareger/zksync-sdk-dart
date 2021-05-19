@@ -6,9 +6,8 @@ class ForcedExit extends Transaction {
 
   int initiatorAccountId;
   EthereumAddress target;
-  int token;
 
-  ForcedExit(int initiatorAccountId, EthereumAddress target, int token,
+  ForcedExit(int initiatorAccountId, EthereumAddress target, Token token,
       BigInt fee, int nonce, TimeRange timeRange) {
     this.initiatorAccountId = initiatorAccountId;
     this.target = target;
@@ -23,7 +22,7 @@ class ForcedExit extends Transaction {
         "type": this.type,
         "initiatorAccountId": this.initiatorAccountId,
         "target": this.target.hex,
-        "token": this.token,
+        "token": this.token.id,
         "fee": this.fee.toString(),
         "nonce": this.nonce,
         "validFrom": this.timeRange.validFromSeconds,

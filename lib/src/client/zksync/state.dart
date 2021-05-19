@@ -28,8 +28,9 @@ class State {
       : nonce = json["nonce"],
         pubKeyHash = json["pubKeyHash"] {
     balances = new Map<String, String>();
+    nfts = new Map<int, NFT>();
     json["balances"].forEach((k, v) => balances[k] = v);
-    json["nfts"].forEach((k, v) => nfts[k] = v);
+    json["nfts"].forEach((k, v) => nfts[int.parse(k)] = NFT.fromJson(v));
   }
 }
 

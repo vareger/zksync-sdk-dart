@@ -4,7 +4,7 @@ class Withdraw extends FundingTransaction {
   @override
   get type => "Withdraw";
 
-  Withdraw(int accountId, EthereumAddress from, EthereumAddress to, int token,
+  Withdraw(int accountId, EthereumAddress from, EthereumAddress to, Token token,
       BigInt amount, BigInt fee, int nonce, TimeRange timeRange) {
     this.accountId = accountId;
     this.from = from;
@@ -22,7 +22,7 @@ class Withdraw extends FundingTransaction {
         "accountId": this.accountId,
         "from": this.from.hex,
         "to": this.to.hex,
-        "token": this.token,
+        "token": this.token.id,
         "amount": this.amount.toString(),
         "fee": this.fee.toString(),
         "nonce": this.nonce,

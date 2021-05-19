@@ -4,8 +4,15 @@ class Transfer extends FundingTransaction {
   @override
   get type => "Transfer";
 
-  Transfer(int accountId, EthereumAddress from, EthereumAddress to, int token,
-      BigInt amount, BigInt fee, int nonce, TimeRange timeRange) {
+  Transfer(
+      int accountId,
+      EthereumAddress from,
+      EthereumAddress to,
+      TokenId token,
+      BigInt amount,
+      BigInt fee,
+      int nonce,
+      TimeRange timeRange) {
     this.accountId = accountId;
     this.from = from;
     this.to = to;
@@ -22,7 +29,7 @@ class Transfer extends FundingTransaction {
         "accountId": this.accountId,
         "from": this.from.hex,
         "to": this.to.hex,
-        "token": this.token,
+        "token": this.token.id,
         "amount": this.amount.toString(),
         "fee": this.fee.toString(),
         "nonce": this.nonce,

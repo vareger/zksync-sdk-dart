@@ -8,15 +8,14 @@ class MintNft extends Transaction {
   EthereumAddress creatorAddress;
   Uint8List contentHash;
   EthereumAddress recipientAddress;
-  int feeToken;
 
-  MintNFT(int creatorId, EthereumAddress creatorAddress, Uint8List contentHash,
-      EthereumAddress recipientAddress, int feeToken, BigInt fee, int nonce) {
+  MintNft(int creatorId, EthereumAddress creatorAddress, Uint8List contentHash,
+      EthereumAddress recipientAddress, Token token, BigInt fee, int nonce) {
     this.creatorId = creatorId;
     this.creatorAddress = creatorAddress;
     this.contentHash = contentHash;
     this.recipientAddress = recipientAddress;
-    this.feeToken = feeToken;
+    this.token = token;
     this.nonce = nonce;
     this.fee = fee;
     this.timeRange = null;
@@ -28,8 +27,8 @@ class MintNft extends Transaction {
         "creatorId": this.creatorId,
         "creatorAddress": this.creatorAddress.hex,
         "contentHash": bytesToHex(this.contentHash, include0x: true),
-        "recipientAddress": this.recipientAddress.hex,
-        "feeToken": this.feeToken,
+        "recipient": this.recipientAddress.hex,
+        "feeToken": this.token.id,
         "fee": this.fee.toString(),
         "nonce": this.nonce,
       };

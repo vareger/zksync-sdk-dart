@@ -1,15 +1,25 @@
 part of 'package:zksync/client.dart';
 
-class Token {
+abstract class TokenId {
+  final int id = 0;
+  final String symbol = "ETH";
+
+  int get decimals;
+}
+
+class Token implements TokenId {
   static final Token eth = Token(
       0,
       EthereumAddress.fromHex("0x0000000000000000000000000000000000000000"),
       "ETH",
       18);
 
+  @override
   final int id;
-  final EthereumAddress address;
+  @override
   final String symbol;
+
+  final EthereumAddress address;
   final int decimals;
 
   Token(this.id, this.address, this.symbol, this.decimals);
@@ -29,15 +39,20 @@ class Token {
   }
 }
 
-class NFT {
+class NFT implements TokenId {
+  @override
   final int id;
+  @override
   final String symbol;
-  final EthereumAddress creatorId;
+
+  int get decimals => 1;
+
+  final int creatorId;
   final Uint8List contentHash;
 
   NFT.fromJson(Map<String, dynamic> json)
       : id = json["id"],
-        creatorId = EthereumAddress.fromHex(json["creatorId"]),
+        creatorId = json["creatorId"],
         symbol = json["symbol"],
         contentHash = hexToBytes(json["contentHash"]);
 

@@ -4,13 +4,18 @@ import 'package:zksync/client.dart';
 import 'package:zksync/credentials.dart';
 
 void main() {
+  Token token = Token(
+      1,
+      EthereumAddress.fromHex("0x0000000000000000000000000000000000000000"),
+      "ETH",
+      18);
   test('convert transfer transaction into byte array', () {
     final address = "0x46a23E25df9A0F6c18729ddA9Ad1aF3b6A131160".toLowerCase();
     final transaction = Transfer(
         123,
         EthereumAddress.fromHex(address),
         EthereumAddress.fromHex(address),
-        1,
+        token,
         BigInt.from(10000000),
         BigInt.from(10000),
         42,
@@ -65,6 +70,8 @@ void main() {
           17,
           96,
           0,
+          0,
+          0,
           1,
           0,
           19,
@@ -102,7 +109,7 @@ void main() {
         123,
         EthereumAddress.fromHex(address),
         EthereumAddress.fromHex(address),
-        1,
+        token,
         BigInt.from(10000000),
         BigInt.from(10000),
         42,
@@ -157,6 +164,8 @@ void main() {
           17,
           96,
           0,
+          0,
+          0,
           1,
           0,
           0,
@@ -206,7 +215,7 @@ void main() {
         123,
         EthereumAddress.fromHex(address),
         ZksPubkeyHash.fromHex(zksaddr),
-        1,
+        token,
         BigInt.from(10000),
         42,
         TimeRange.raw(1, 123456789));
@@ -261,6 +270,8 @@ void main() {
           50,
           13,
           0,
+          0,
+          0,
           1,
           125,
           1,
@@ -289,7 +300,7 @@ void main() {
 
   test('convert forced exit transaction into byte array', () {
     final address = "0x46a23E25df9A0F6c18729ddA9Ad1aF3b6A131160".toLowerCase();
-    final transaction = ForcedExit(123, EthereumAddress.fromHex(address), 1,
+    final transaction = ForcedExit(123, EthereumAddress.fromHex(address), token,
         BigInt.from(10000), 42, TimeRange.raw(1, 123456789));
     final result = transaction.toBytes();
     expect(
@@ -320,6 +331,8 @@ void main() {
           19,
           17,
           96,
+          0,
+          0,
           0,
           1,
           125,
@@ -353,12 +366,12 @@ void main() {
         123,
         EthereumAddress.fromHex(address),
         EthereumAddress.fromHex(address),
-        1,
+        token,
         BigInt.from(10000000),
         BigInt.from(10000),
         42,
         TimeRange.raw(1, 123456789));
-    final result = transaction.toEthereumSignMessage("ETH", 18, nonce: true);
+    final result = transaction.toEthereumSignMessage(nonce: true);
     expect(
         result,
         equals(
@@ -371,12 +384,12 @@ void main() {
         123,
         EthereumAddress.fromHex(address),
         EthereumAddress.fromHex(address),
-        1,
+        token,
         BigInt.from(10000000),
         BigInt.from(10000),
         42,
         TimeRange.raw(1, 123456789));
-    final result = transaction.toEthereumSignMessage("ETH", 18, nonce: true);
+    final result = transaction.toEthereumSignMessage(nonce: true);
     expect(
         result,
         equals(
@@ -385,9 +398,9 @@ void main() {
 
   test('convert forced exit transaction into ethereum sign message', () {
     final address = "0x46a23E25df9A0F6c18729ddA9Ad1aF3b6A131160".toLowerCase();
-    final transaction = ForcedExit(123, EthereumAddress.fromHex(address), 1,
+    final transaction = ForcedExit(123, EthereumAddress.fromHex(address), token,
         BigInt.from(10000), 42, TimeRange.raw(1, 123456789));
-    final result = transaction.toEthereumSignMessage("ETH", 18, nonce: true);
+    final result = transaction.toEthereumSignMessage(nonce: true);
     expect(
         result,
         equals(
@@ -401,12 +414,12 @@ void main() {
         123,
         EthereumAddress.fromHex(address),
         ZksPubkeyHash.fromHex(zksaddr),
-        1,
+        token,
         BigInt.from(10000),
         42,
         TimeRange.raw(1, 123456789));
     transaction.setAuth(ChangePubKeyOnchainVariant());
-    final result = transaction.toEthereumSignMessage("ETH", 18, nonce: false);
+    final result = transaction.toEthereumSignMessage(nonce: false);
     expect(
         result,
         equals(
@@ -421,7 +434,7 @@ void main() {
         123,
         EthereumAddress.fromHex(address),
         ZksPubkeyHash.fromHex(zksaddr),
-        1,
+        token,
         BigInt.from(10000),
         42,
         TimeRange.raw(1, 123456789));
