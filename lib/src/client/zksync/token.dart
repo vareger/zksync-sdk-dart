@@ -50,6 +50,8 @@ class NFT implements TokenId {
   final int creatorId;
   final Uint8List contentHash;
 
+  NFT(this.id, this.symbol, this.creatorId, this.contentHash);
+
   NFT.fromJson(Map<String, dynamic> json)
       : id = json["id"],
         creatorId = json["creatorId"],

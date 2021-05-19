@@ -112,7 +112,7 @@ extension ToEthereumMessage<T extends Transaction> on T {
       case 'WithdrawNFT':
         {
           final tx = this as WithdrawNft;
-          result = "${tx.type} ${tx.token.id} to: ${tx.to}";
+          result = "${tx.type} ${tx.nft.id} to: ${tx.to}";
         }
         break;
       case 'ForcedExit':
