@@ -17,7 +17,8 @@ class ZksCrypto {
   }
 
   static ZksCrypto load() {
-    final LD_LIBRARY_PATH = "";
+    final LD_LIBRARY_PATH =
+        "/Users/maximusfk/Development/zksync-dart/zksync-client/zksync-crypto-c/target/release/libzks_crypto.dylib";
     final bindings =
         new ZksCryptoBindings(DynamicLibrary.open(LD_LIBRARY_PATH));
     bindings.zks_crypto_init();

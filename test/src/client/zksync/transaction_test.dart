@@ -12,7 +12,14 @@ void main() {
       18);
   final contentHash = hexToBytes(
       "0000000000000000000000000000000000000000000000000000000000000123");
-  final nft = NFT(100000, "NFT-100000", 44, contentHash);
+  final nft = NFT(
+      100000,
+      "NFT-100000",
+      44,
+      contentHash,
+      EthereumAddress.fromHex("0x0000000000000000000000000000000000000000"),
+      2,
+      EthereumAddress.fromHex("0x0000000000000000000000000000000000000000"));
   test('convert transfer transaction into byte array', () {
     final address = "0x46a23E25df9A0F6c18729ddA9Ad1aF3b6A131160".toLowerCase();
     final transaction = Transfer(
@@ -637,6 +644,36 @@ void main() {
         result,
         equals(
             "WithdrawNFT 100000 to: 0x19aa2ed8712072e918632259780e587698ef58df\nFee: 0.00000000000001 ETH\nNonce: 42"));
+  });
+
+  test('convert transfer nft transaction into ethereum sign message (batch)',
+      () {
+    final transferNft = Transfer(
+        44,
+        EthereumAddress.fromHex('0xede35562d3555e61120a151b3c8e8e91d83a378a'),
+        EthereumAddress.fromHex('0x19aa2ed8712072e918632259780e587698ef58df'),
+        nft,
+        BigInt.one,
+        BigInt.zero,
+        42,
+        TimeRange.raw(0, 4294967295));
+    final payFee = Transfer(
+        44,
+        EthereumAddress.fromHex('0xede35562d3555e61120a151b3c8e8e91d83a378a'),
+        EthereumAddress.fromHex('0x19aa2ed8712072e918632259780e587698ef58df'),
+        token,
+        BigInt.zero,
+        BigInt.from(10000),
+        42,
+        TimeRange.raw(0, 4294967295));
+    final prepared = [transferNft, payFee]
+        .map((t) => t.toEthereumSignMessage(nonce: false))
+        .join("\n");
+    final result = transferNft.appendNonce(prepared);
+    expect(
+        result,
+        equals(
+            "Transfer 1.0 NFT-100000 to: 0x19aa2ed8712072e918632259780e587698ef58df\nFee: 0.00000000000001 ETH\nNonce: 42"));
   });
 
   test('convert change public key transaction into ethereum sign message', () {

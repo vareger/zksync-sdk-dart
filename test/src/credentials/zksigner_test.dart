@@ -16,7 +16,14 @@ void main() async {
       '000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f';
   final contentHash = hexToBytes(
       "0000000000000000000000000000000000000000000000000000000000000123");
-  final nft = NFT(100000, "NFT-100000", 44, contentHash);
+  final nft = NFT(
+      100000,
+      "NFT-100000",
+      44,
+      contentHash,
+      EthereumAddress.fromHex("0x0000000000000000000000000000000000000000"),
+      2,
+      EthereumAddress.fromHex("0x0000000000000000000000000000000000000000"));
 
   final ethSigner =
       EthSigner.hex(privateKey, chainId: ChainId.Mainnet.getChainId());

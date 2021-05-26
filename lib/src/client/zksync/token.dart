@@ -45,18 +45,25 @@ class NFT implements TokenId {
   @override
   final String symbol;
 
-  int get decimals => 1;
+  int get decimals => 0;
 
   final int creatorId;
   final Uint8List contentHash;
+  final EthereumAddress creatorAddress;
+  final int serialId;
+  final EthereumAddress address;
 
-  NFT(this.id, this.symbol, this.creatorId, this.contentHash);
+  NFT(this.id, this.symbol, this.creatorId, this.contentHash,
+      this.creatorAddress, this.serialId, this.address);
 
   NFT.fromJson(Map<String, dynamic> json)
       : id = json["id"],
         creatorId = json["creatorId"],
         symbol = json["symbol"],
-        contentHash = hexToBytes(json["contentHash"]);
+        contentHash = hexToBytes(json["contentHash"]),
+        creatorAddress = EthereumAddress.fromHex(json["creatorAddress"]),
+        serialId = json["serialId"],
+        address = EthereumAddress.fromHex(json["address"]);
 
   bool operator ==(other) {
     return (other is NFT) &&
