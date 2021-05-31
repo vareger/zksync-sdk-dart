@@ -10,7 +10,7 @@ extension ToBytes<T extends Transaction> on T {
           transfer.accountId.uint32BigEndianBytes(),
           transfer.from.addressBytes,
           transfer.to.addressBytes,
-          transfer.token.uint16BigEndianBytes(),
+          transfer.token.id.uint32BigEndianBytes(),
           packTokenAmount(transfer.amount),
           packFeeAmount(transfer.fee),
           transfer.nonce.uint32BigEndianBytes(),
@@ -25,7 +25,7 @@ extension ToBytes<T extends Transaction> on T {
           withdraw.accountId.uint32BigEndianBytes(),
           withdraw.from.addressBytes,
           withdraw.to.addressBytes,
-          withdraw.token.uint16BigEndianBytes(),
+          withdraw.token.id.uint32BigEndianBytes(),
           bigIntegerToBytes(withdraw.amount, 16),
           packFeeAmount(withdraw.fee),
           withdraw.nonce.uint32BigEndianBytes(),
@@ -40,7 +40,7 @@ extension ToBytes<T extends Transaction> on T {
           changePubKey.accountId.uint32BigEndianBytes(),
           changePubKey.account.addressBytes,
           changePubKey.newPkHash.addressBytes,
-          changePubKey.feeToken.uint16BigEndianBytes(),
+          changePubKey.token.id.uint32BigEndianBytes(),
           packFeeAmount(changePubKey.fee),
           changePubKey.nonce.uint32BigEndianBytes(),
           changePubKey.timeRange.validFromSeconds.uint64BigEndianBytes(),
@@ -53,11 +53,39 @@ extension ToBytes<T extends Transaction> on T {
           [8],
           forcedExit.initiatorAccountId.uint32BigEndianBytes(),
           forcedExit.target.addressBytes,
-          forcedExit.token.uint16BigEndianBytes(),
+          forcedExit.token.id.uint32BigEndianBytes(),
           packFeeAmount(forcedExit.fee),
           forcedExit.nonce.uint32BigEndianBytes(),
           forcedExit.timeRange.validFromSeconds.uint64BigEndianBytes(),
           forcedExit.timeRange.validUntilSeconds.uint64BigEndianBytes(),
+        ];
+        return Uint8List.fromList(bytes.expand((x) => x).toList());
+      case "MintNFT":
+        final mintNft = this as MintNft;
+        final bytes = [
+          [9],
+          mintNft.creatorId.uint32BigEndianBytes(),
+          mintNft.creatorAddress.addressBytes,
+          mintNft.contentHash,
+          mintNft.recipientAddress.addressBytes,
+          mintNft.token.id.uint32BigEndianBytes(),
+          packFeeAmount(mintNft.fee),
+          mintNft.nonce.uint32BigEndianBytes(),
+        ];
+        return Uint8List.fromList(bytes.expand((x) => x).toList());
+      case "WithdrawNFT":
+        final withdraw = this as WithdrawNft;
+        final bytes = [
+          [10],
+          withdraw.accountId.uint32BigEndianBytes(),
+          withdraw.from.addressBytes,
+          withdraw.to.addressBytes,
+          withdraw.nft.id.uint32BigEndianBytes(),
+          withdraw.token.id.uint32BigEndianBytes(),
+          packFeeAmount(withdraw.fee),
+          withdraw.nonce.uint32BigEndianBytes(),
+          withdraw.timeRange.validFromSeconds.uint64BigEndianBytes(),
+          withdraw.timeRange.validUntilSeconds.uint64BigEndianBytes(),
         ];
         return Uint8List.fromList(bytes.expand((x) => x).toList());
     }
@@ -66,22 +94,31 @@ extension ToBytes<T extends Transaction> on T {
 }
 
 extension ToEthereumMessage<T extends Transaction> on T {
-  String toEthereumSignMessage(String tokenSymbol, int decimals,
-      {bool nonce = false}) {
+  String toEthereumSignMessage({bool nonce = false}) {
     var result = '';
+    final token = this.token;
     switch (this.type) {
       case 'Transfer':
       case 'Withdraw':
         {
           final tx = this as FundingTransaction;
+          if (tx.amount == BigInt.zero) {
+            break;
+          }
           result =
-              "${tx.type} ${formatUnit(tx.amount.toString(), decimals)} $tokenSymbol to: ${tx.to.hex}";
+              "${tx.type} ${formatUnit(tx.amount.toString(), token.decimals)} ${token.symbol} to: ${tx.to.hex}";
+        }
+        break;
+      case 'WithdrawNFT':
+        {
+          final tx = this as WithdrawNft;
+          result = "${tx.type} ${tx.nft.id} to: ${tx.to}";
         }
         break;
       case 'ForcedExit':
         {
           final tx = this as ForcedExit;
-          result = "${tx.type} $tokenSymbol to: ${tx.target.hex}";
+          result = "${tx.type} ${token.symbol} to: ${tx.target.hex}";
         }
         break;
       case 'ChangePubKey':
@@ -90,16 +127,32 @@ extension ToEthereumMessage<T extends Transaction> on T {
           result = "Set signing key: ${tx.newPkHash.hexHash}";
         }
         break;
+      case 'MintNFT':
+        {
+          final tx = this as MintNft;
+          result =
+              "${tx.type} ${bytesToHex(tx.contentHash, include0x: true)} for: ${tx.recipientAddress.hex}";
+        }
+        break;
       default:
         throw 'Invalid transaction type';
     }
     if (this.fee.compareTo(BigInt.zero) > 0) {
-      result +=
-          "\nFee: ${formatUnit(this.fee.toString(), decimals)} $tokenSymbol";
+      result = this.appendFee(result, token);
     }
     if (nonce) {
       result = this.appendNonce(result);
     }
+    return result;
+  }
+
+  String appendFee(String message, TokenId token) {
+    var result = '';
+    if (message.isNotEmpty) {
+      result += message + "\n";
+    }
+    result +=
+        "Fee: ${formatUnit(this.fee.toString(), token.decimals)} ${token.symbol}";
     return result;
   }
 

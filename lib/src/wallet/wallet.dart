@@ -22,13 +22,13 @@ class Wallet<Zk extends ZkSyncClient, Eth extends EthereumClient,
       bool onchainAuth = false,
       TimeRange timeRange}) async {
     final type = onchainAuth
-        ? TransactionType.CHANGE_PUB_KEY_ONCHAIN_AUTH
-        : TransactionType.CHANGE_PUB_KEY;
+        ? TransactionType.LEGACY_CHANGE_PUB_KEY_ONCHAIN_AUTH
+        : TransactionType.LEGACY_CHANGE_PUB_KEY;
     final transaction = ChangePubKey(
       await this.getAccountId(),
       await this.getAddress(),
       pubKeyhash,
-      token.id,
+      token,
       await this._OrFee(type, fee, await this.getAddress(), token),
       nonce ?? await this.getNonce(),
       timeRange ?? TimeRange.def(),
@@ -49,13 +49,13 @@ class Wallet<Zk extends ZkSyncClient, Eth extends EthereumClient,
         await this.getAccountId(),
         await this.getAddress(),
         to,
-        token.id,
+        token,
         amount,
         await this._OrFee(TransactionType.TRANSFER, fee, to, token),
         nonce ?? await this.getNonce(),
         timeRange ?? TimeRange.def());
     final signed = await this._signer.sign(transaction);
-    final authSignature = await this._auth.sign(transaction, token);
+    final authSignature = await this._auth.sign(transaction);
     return this._zksync.submitTx(
           signed,
           authSignature,
@@ -74,13 +74,13 @@ class Wallet<Zk extends ZkSyncClient, Eth extends EthereumClient,
         await this.getAccountId(),
         await this.getAddress(),
         to,
-        token.id,
+        token,
         amount,
         await this._OrFee(type, fee, to, token),
         nonce ?? await this.getNonce(),
         timeRange ?? TimeRange.def());
     final signed = await this._signer.sign(transaction);
-    final authSignature = await this._auth.sign(transaction, token);
+    final authSignature = await this._auth.sign(transaction);
     if (fast) {
       return this._zksync.submitFastTx(signed, authSignature);
     } else {
@@ -93,13 +93,84 @@ class Wallet<Zk extends ZkSyncClient, Eth extends EthereumClient,
     final transaction = ForcedExit(
         await this.getAccountId(),
         to,
-        token.id,
+        token,
         await this._OrFee(TransactionType.FORCED_EXIT, fee, to, token),
         nonce ?? await this.getNonce(),
         timeRange ?? TimeRange.def());
     final signed = await this._signer.sign(transaction);
-    final authSignature = await this._auth.sign(transaction, token);
+    final authSignature = await this._auth.sign(transaction);
     return this._zksync.submitTx(signed, authSignature);
+  }
+
+  Future<String> mintNft(EthereumAddress to, Uint8List contentHash,
+      {Token token, TransactionFee fee, int nonce}) async {
+    final transaction = MintNft(
+        await this.getAccountId(),
+        await this.getAddress(),
+        contentHash,
+        to,
+        token,
+        await this._OrFee(TransactionType.MINT_NFT, fee, to, token),
+        nonce ?? await this.getNonce());
+    final signed = await this._signer.sign(transaction);
+    final authSignature = await this._auth.sign(transaction);
+    return this._zksync.submitTx(signed, authSignature);
+  }
+
+  Future<String> withdrawNft(EthereumAddress to, NFT nft,
+      {Token token,
+      TransactionFee fee,
+      int nonce,
+      TimeRange timeRange,
+      bool fast = false}) async {
+    final type =
+        fast ? TransactionType.FAST_WITHDRAW : TransactionType.WITHDRAW;
+    final transaction = WithdrawNft(
+        token,
+        await this.getAccountId(),
+        await this.getAddress(),
+        to,
+        nft,
+        await this._OrFee(type, fee, to, token),
+        nonce ?? await this.getNonce(),
+        timeRange ?? TimeRange.def());
+    final signed = await this._signer.sign(transaction);
+    final authSignature = await this._auth.sign(transaction);
+    return this._zksync.submitTx(signed, authSignature);
+  }
+
+  Future<List<String>> transferNft(EthereumAddress to, NFT nft,
+      {Token token, TransactionFee fee, int nonce, TimeRange timeRange}) async {
+    final feeToUse = fee ??
+        await _zksync.getTransactionBatchFee(
+            [TransactionType.TRANSFER, TransactionType.TRANSFER],
+            [to, await this.getAddress()],
+            TokenLike.id(token.id));
+    final nonceToUse = nonce ?? await this.getNonce();
+    final transferNft = Transfer(
+        await this.getAccountId(),
+        await this.getAddress(),
+        to,
+        nft,
+        BigInt.one,
+        BigInt.zero,
+        nonceToUse,
+        timeRange ?? TimeRange.def());
+    final payFee = Transfer(
+        await this.getAccountId(),
+        await this.getAddress(),
+        await this.getAddress(),
+        token,
+        BigInt.zero,
+        feeToUse.totalFee,
+        nonceToUse + 1,
+        timeRange ?? TimeRange.def());
+    final signedTransferNft = await this._signer.sign(transferNft);
+    final signedPayFee = await this._signer.sign(payFee);
+    final authSignature = await this._auth.signBatch([transferNft, payFee]);
+    return this
+        ._zksync
+        .submitBatchTx([signedTransferNft, signedPayFee], authSignature);
   }
 
   Future<bool> isSigningKeySet() async {

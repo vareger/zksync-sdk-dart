@@ -14,6 +14,9 @@ class ZkSyncClient {
   ZkSyncClient.fromChainId(ChainId chainId)
       : this(chainId.getDefaultUrl(), Client());
 
+  ZkSyncClient.betaFromChainId(ChainId chainId)
+      : this(chainId.getBetaDefaultUrl(), Client());
+
   Future<T> _makeRPCCall<T>(String function, [List<dynamic> params]) async {
     try {
       final data = await _jsonRpc.call(function, params);
@@ -42,6 +45,17 @@ class ZkSyncClient {
     return TransactionFee.fromJson(result);
   }
 
+  Future<TransactionFee> getTransactionBatchFee(List<TransactionType> type,
+      List<EthereumAddress> accountAddress, TokenLike token) async {
+    final result =
+        await _makeRPCCall<Map<String, dynamic>>("get_txs_batch_fee_in_wei", [
+      type.map((e) => e.type()).toList(),
+      accountAddress.map((e) => e.hexEip55).toList(),
+      token.value
+    ]);
+    return TransactionFee.fromJson(result);
+  }
+
   Future<Map<String, Token>> getTokens() async {
     final result = await _makeRPCCall<Map<String, dynamic>>("tokens");
     return result.map((k, v) => MapEntry(k, Token.fromJson(v)));
@@ -53,7 +67,7 @@ class ZkSyncClient {
   }
 
   Future<SystemContract> getContractAddress() async {
-    final result = await _makeRPCCall<Map<String, dynamic>>("tokens");
+    final result = await _makeRPCCall<Map<String, dynamic>>("contract_address");
     return SystemContract.fromJson(result);
   }
 
@@ -90,10 +104,12 @@ class ZkSyncClient {
         "tx_submit", [transaction.toJson(), signature?.toJson(), true]);
   }
 
-  Future<String> submitBatchTx(List<SignedTransaction> transactions,
+  Future<List<String>> submitBatchTx(List<SignedTransaction> transactions,
       [EthSignature signature]) async {
-    return await _makeRPCCall<String>(
-        "submit_txs_batch", [transactions, signature?.toJson()]);
+    return await _makeRPCCall<List<String>>("submit_txs_batch", [
+      transactions.map((e) => {"tx": e.toJson(), "signature": null}).toList(),
+      [signature?.toJson()]
+    ]);
   }
 }
 
@@ -129,6 +145,17 @@ extension DefaultUrl on ChainId {
         return 'http://127.0.0.1:3030';
       default:
         return '';
+    }
+  }
+
+  String getBetaDefaultUrl() {
+    switch (this) {
+      case ChainId.Ropsten:
+        return 'https://ropsten-beta-api.zksync.io/jsrpc';
+      case ChainId.Rinkeby:
+        return 'https://rinkeby-beta-api.zksync.io/jsrpc';
+      default:
+        throw 'Unsupported beta network for given chain id: ${this.getChainId()}';
     }
   }
 }

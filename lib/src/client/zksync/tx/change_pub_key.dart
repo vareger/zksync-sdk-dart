@@ -99,15 +99,14 @@ class ChangePubKey extends Transaction {
   int accountId;
   EthereumAddress account;
   ZksPubkeyHash newPkHash;
-  int feeToken;
   ChangePubKeyVariant ethAuthData;
 
   ChangePubKey(int accountId, EthereumAddress account, ZksPubkeyHash newPkHash,
-      int feeToken, BigInt fee, int nonce, TimeRange timeRange) {
+      Token token, BigInt fee, int nonce, TimeRange timeRange) {
     this.accountId = accountId;
     this.account = account;
     this.newPkHash = newPkHash;
-    this.feeToken = feeToken;
+    this.token = token;
     this.fee = fee;
     this.nonce = nonce;
     this.timeRange = timeRange;
@@ -123,7 +122,7 @@ class ChangePubKey extends Transaction {
         "accountId": this.accountId,
         "account": this.account.hex,
         "newPkHash": this.newPkHash.hexHashPrefix,
-        "feeToken": this.feeToken,
+        "feeToken": this.token.id,
         "ethAuthData": this.ethAuthData.toJson(),
         "fee": this.fee.toString(),
         "nonce": this.nonce,

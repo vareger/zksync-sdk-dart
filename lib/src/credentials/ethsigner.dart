@@ -24,21 +24,17 @@ class EthSigner {
     return _credentials.signPersonalMessage(payload, chainId: chainId);
   }
 
-  Future<EthSignature> sign<T extends Transaction>(
-      T transaction, Token token) async {
-    final message = transaction
-        .toEthereumSignMessage(token.symbol, token.decimals, nonce: true);
+  Future<EthSignature> sign<T extends Transaction>(T transaction) async {
+    final message = transaction.toEthereumSignMessage(nonce: true);
     final signature = await _credentials
         .signPersonalMessage(Utf8Encoder().convert(message), chainId: chainId);
     return EthSignature(SignatureType.EthereumSignature, signature);
   }
 
-  Future<EthSignature> signBatch(
-      List<Transaction> transactions, Token token) async {
+  Future<EthSignature> signBatch(List<Transaction> transactions) async {
     final first = transactions.first;
     final prepared = transactions
-        .map((t) =>
-            t.toEthereumSignMessage(token.symbol, token.decimals, nonce: false))
+        .map((t) => t.toEthereumSignMessage(nonce: false))
         .join("\n");
     final message = first.appendNonce(prepared);
     final signature = await _credentials
